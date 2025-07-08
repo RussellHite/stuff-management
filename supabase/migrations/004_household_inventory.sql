@@ -130,8 +130,6 @@ CREATE TABLE shopping_list_items (
     is_purchased BOOLEAN DEFAULT FALSE,
     purchased_by UUID REFERENCES user_profiles(id),
     purchased_at TIMESTAMP WITH TIME ZONE,
-    estimated_cost DECIMAL(10,2),
-    actual_cost DECIMAL(10,2),
     -- Optional reference to existing consumable for reordering
     consumable_id UUID REFERENCES consumables(id),
     created_by UUID REFERENCES user_profiles(id),
