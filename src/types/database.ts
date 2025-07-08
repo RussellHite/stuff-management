@@ -7,7 +7,11 @@ export type Json =
   | Json[]
 
 export type UserRole = 'admin' | 'manager' | 'employee' | 'viewer'
+export type FamilyRole = 'household_admin' | 'family_member' | 'kids_limited'
 export type TransactionType = 'in' | 'out' | 'transfer' | 'adjustment'
+export type ItemType = 'consumable' | 'non_consumable'
+export type PhotoType = 'main' | 'detail' | 'condition' | 'receipt'
+export type QualityRating = 'excellent' | 'good' | 'fair' | 'poor' | 'needs_repair'
 
 export interface Database {
   public: {
@@ -380,6 +384,282 @@ export interface Database {
           created_at?: string
           to_location_id?: string | null
           reason?: string | null
+        }
+      }
+      household_locations: {
+        Row: {
+          id: string
+          organization_id: string
+          room_name: string
+          description: string | null
+          is_primary_storage: boolean
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          organization_id: string
+          room_name: string
+          description?: string | null
+          is_primary_storage?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          organization_id?: string
+          room_name?: string
+          description?: string | null
+          is_primary_storage?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+      }
+      consumables: {
+        Row: {
+          id: string
+          organization_id: string
+          name: string
+          description: string | null
+          brand: string | null
+          size_quantity: string | null
+          current_quantity: number
+          reorder_threshold: number
+          reorder_info: string | null
+          cost_per_unit: number | null
+          primary_location_id: string | null
+          qr_code: string | null
+          barcode: string | null
+          expiration_date: string | null
+          purchase_date: string | null
+          notes: string | null
+          is_active: boolean
+          created_by: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          organization_id: string
+          name: string
+          description?: string | null
+          brand?: string | null
+          size_quantity?: string | null
+          current_quantity?: number
+          reorder_threshold?: number
+          reorder_info?: string | null
+          cost_per_unit?: number | null
+          primary_location_id?: string | null
+          qr_code?: string | null
+          barcode?: string | null
+          expiration_date?: string | null
+          purchase_date?: string | null
+          notes?: string | null
+          is_active?: boolean
+          created_by?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          organization_id?: string
+          name?: string
+          description?: string | null
+          brand?: string | null
+          size_quantity?: string | null
+          current_quantity?: number
+          reorder_threshold?: number
+          reorder_info?: string | null
+          cost_per_unit?: number | null
+          primary_location_id?: string | null
+          qr_code?: string | null
+          barcode?: string | null
+          expiration_date?: string | null
+          purchase_date?: string | null
+          notes?: string | null
+          is_active?: boolean
+          created_by?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+      }
+      non_consumables: {
+        Row: {
+          id: string
+          organization_id: string
+          name: string
+          description: string | null
+          brand: string | null
+          model: string | null
+          serial_number: string | null
+          purchase_date: string | null
+          purchase_price: number | null
+          warranty_expiration: string | null
+          primary_location_id: string | null
+          current_quality_rating: QualityRating
+          qr_code: string | null
+          notes: string | null
+          is_active: boolean
+          created_by: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          organization_id: string
+          name: string
+          description?: string | null
+          brand?: string | null
+          model?: string | null
+          serial_number?: string | null
+          purchase_date?: string | null
+          purchase_price?: number | null
+          warranty_expiration?: string | null
+          primary_location_id?: string | null
+          current_quality_rating?: QualityRating
+          qr_code?: string | null
+          notes?: string | null
+          is_active?: boolean
+          created_by?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          organization_id?: string
+          name?: string
+          description?: string | null
+          brand?: string | null
+          model?: string | null
+          serial_number?: string | null
+          purchase_date?: string | null
+          purchase_price?: number | null
+          warranty_expiration?: string | null
+          primary_location_id?: string | null
+          current_quality_rating?: QualityRating
+          qr_code?: string | null
+          notes?: string | null
+          is_active?: boolean
+          created_by?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+      }
+      shopping_lists: {
+        Row: {
+          id: string
+          organization_id: string
+          name: string
+          description: string | null
+          is_active: boolean
+          created_by: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          organization_id: string
+          name?: string
+          description?: string | null
+          is_active?: boolean
+          created_by?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          organization_id?: string
+          name?: string
+          description?: string | null
+          is_active?: boolean
+          created_by?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+      }
+      shopping_list_items: {
+        Row: {
+          id: string
+          shopping_list_id: string
+          item_name: string
+          quantity: number
+          notes: string | null
+          is_purchased: boolean
+          purchased_by: string | null
+          purchased_at: string | null
+          estimated_cost: number | null
+          actual_cost: number | null
+          consumable_id: string | null
+          created_by: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          shopping_list_id: string
+          item_name: string
+          quantity?: number
+          notes?: string | null
+          is_purchased?: boolean
+          purchased_by?: string | null
+          purchased_at?: string | null
+          estimated_cost?: number | null
+          actual_cost?: number | null
+          consumable_id?: string | null
+          created_by?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          shopping_list_id?: string
+          item_name?: string
+          quantity?: number
+          notes?: string | null
+          is_purchased?: boolean
+          purchased_by?: string | null
+          purchased_at?: string | null
+          estimated_cost?: number | null
+          actual_cost?: number | null
+          consumable_id?: string | null
+          created_by?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+      }
+      family_activity_log: {
+        Row: {
+          id: string
+          organization_id: string
+          user_id: string
+          activity_type: string
+          description: string
+          item_id: string | null
+          item_type: ItemType | null
+          metadata: Json
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          organization_id: string
+          user_id: string
+          activity_type: string
+          description: string
+          item_id?: string | null
+          item_type?: ItemType | null
+          metadata?: Json
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          organization_id?: string
+          user_id?: string
+          activity_type?: string
+          description?: string
+          item_id?: string | null
+          item_type?: ItemType | null
+          metadata?: Json
+          created_at?: string
         }
       }
     }

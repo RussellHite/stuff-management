@@ -14,8 +14,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Stuff Management - Multi-user Inventory System",
-  description: "A comprehensive multi-user inventory management system built with Next.js and Supabase",
+  title: "Household Inventory - Family Stuff Management",
+  description: "A comprehensive household inventory management system for families to track consumables, appliances, and shared items",
 };
 
 export default function RootLayout({
