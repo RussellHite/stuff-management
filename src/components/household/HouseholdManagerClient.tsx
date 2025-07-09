@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import LocationManager from './LocationManager'
 import ConsumablesManager from './ConsumablesManager'
+import ClientOnlyNonConsumables from './ClientOnlyNonConsumables'
 import FamilyMemberManager from './FamilyMemberManager'
 import { Home, Package, Settings, Users } from 'lucide-react'
 
@@ -75,15 +76,11 @@ export default function HouseholdManagerClient({
         )}
         
         {activeTab === 'non-consumables' && (
-          <div className="text-center py-12">
-            <div className="text-gray-400 text-6xl mb-4">🏠</div>
-            <h3 className="text-lg font-medium text-gray-900 mb-2">
-              Household Items Coming Soon
-            </h3>
-            <p className="text-gray-500 mb-4">
-              Manage appliances, furniture, and other household items
-            </p>
-          </div>
+          <ClientOnlyNonConsumables
+            householdId={householdId}
+            userId={userId}
+            userRole={userRole}
+          />
         )}
         
         {activeTab === 'family' && (

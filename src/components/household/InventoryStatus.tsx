@@ -11,7 +11,7 @@ interface ConsumableStatus {
   reorder_threshold: number
   household_locations?: {
     room_name: string
-  }
+  } | null
 }
 
 interface InventoryStatusProps {
@@ -71,7 +71,7 @@ export default function InventoryStatus({ householdId, compact = false }: Invent
           name,
           current_quantity,
           reorder_threshold,
-          household_locations (
+          household_locations!inner (
             room_name
           )
         `)

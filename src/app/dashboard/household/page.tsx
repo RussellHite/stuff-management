@@ -107,6 +107,21 @@ export default async function HouseholdDashboard() {
     .eq('organization_id', householdId)
     .eq('is_active', true)
 
+  // Get non-consumables needing attention (poor or broken condition)
+  const { data: nonConsumablesNeedingAttention } = await supabase
+    .from('non_consumables')
+    .select('id, name, current_condition, household_locations(room_name)')
+    .eq('organization_id', householdId)
+    .eq('is_active', true)
+    .in('current_condition', ['poor', 'broken'])
+
+  // Get condition breakdown
+  const { data: conditionBreakdown } = await supabase
+    .from('non_consumables')
+    .select('current_condition')
+    .eq('organization_id', householdId)
+    .eq('is_active', true)
+
   const familyRole = household.role === 'admin' ? 'household_admin' : 
                     household.role === 'manager' || household.role === 'employee' ? 'family_member' : 'kids_limited'
 
@@ -121,10 +136,12 @@ export default async function HouseholdDashboard() {
         totalConsumables: totalConsumables || 0,
         totalNonConsumables: totalNonConsumables || 0,
         shoppingListCount: shoppingItems?.length || 0,
-        lowStockCount: lowConsumables?.length || 0
+        lowStockCount: lowConsumables?.length || 0,
+        itemsNeedingAttention: nonConsumablesNeedingAttention?.length || 0
       }}
       locations={locations || []}
       shoppingItems={shoppingItems || []}
+      nonConsumablesNeedingAttention={nonConsumablesNeedingAttention || []}
     />
   )
 }
