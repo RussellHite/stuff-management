@@ -2,9 +2,10 @@
 
 import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase/client'
-import { Plus, Edit, Trash2, Camera, Tag, X } from 'lucide-react'
+import { Plus, Edit, Trash2, Camera, Tag, X, Box } from 'lucide-react'
 import { useDropzone } from 'react-dropzone'
 import { toast } from 'react-hot-toast'
+import ClientOnlyStorageContainerManager from './ClientOnlyStorageContainerManager'
 
 interface Location {
   id: string
@@ -45,6 +46,7 @@ export default function LocationManager({ householdId, userRole }: LocationManag
   const [tagInput, setTagInput] = useState('')
   const [selectedTags, setSelectedTags] = useState<string[]>([])
   const [loading, setLoading] = useState(true)
+  const [managingContainers, setManagingContainers] = useState<string | null>(null)
 
   const canEdit = userRole === 'admin' || userRole === 'manager'
 
@@ -468,6 +470,7 @@ export default function LocationManager({ householdId, userRole }: LocationManag
             onDelete={() => handleDeleteLocation(location.id)}
             onPhotoUpload={(files) => onDrop(files, location.id)}
             isUploading={isUploading}
+            onManageContainers={() => setManagingContainers(location.id)}
           />
         ))}
       </div>
@@ -487,6 +490,16 @@ export default function LocationManager({ householdId, userRole }: LocationManag
           )}
         </div>
       )}
+
+      {/* Storage Container Manager Modal */}
+      {managingContainers && (
+        <ClientOnlyStorageContainerManager
+          locationId={managingContainers}
+          householdId={householdId}
+          userRole={userRole}
+          onClose={() => setManagingContainers(null)}
+        />
+      )}
     </div>
   )
 }
@@ -497,7 +510,8 @@ function LocationCard({
   onEdit, 
   onDelete, 
   onPhotoUpload, 
-  isUploading 
+  isUploading,
+  onManageContainers
 }: {
   location: Location
   canEdit: boolean
@@ -505,6 +519,7 @@ function LocationCard({
   onDelete: () => void
   onPhotoUpload: (files: File[]) => void
   isUploading: boolean
+  onManageContainers: () => void
 }) {
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop: onPhotoUpload,
@@ -569,6 +584,17 @@ function LocationCard({
         {location.description && (
           <p className="text-sm text-gray-600 mb-2">{location.description}</p>
         )}
+
+        {/* Manage Storage Button */}
+        <div className="mb-3">
+          <button
+            onClick={onManageContainers}
+            className="w-full flex items-center justify-center px-3 py-2 text-sm bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors"
+          >
+            <Box className="h-4 w-4 mr-2" />
+            Manage Storage
+          </button>
+        </div>
 
         <div className="flex items-center justify-between">
           {location.is_primary_storage && (

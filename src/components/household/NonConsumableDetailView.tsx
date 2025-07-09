@@ -39,6 +39,12 @@ interface NonConsumableDetail {
     room_name: string
     description: string
   }
+  storage_containers?: {
+    id: string
+    name: string
+    container_type: string
+    description: string
+  }
   user_profiles: {
     first_name: string
     last_name: string
@@ -85,6 +91,12 @@ export default function NonConsumableDetailView({
           household_locations (
             id,
             room_name,
+            description
+          ),
+          storage_containers (
+            id,
+            name,
+            container_type,
             description
           ),
           user_profiles (
@@ -240,7 +252,14 @@ export default function NonConsumableDetailView({
                 <div className="flex items-center">
                   <MapPin className="h-4 w-4 mr-2 text-gray-400" />
                   <span className="font-medium">Location:</span>
-                  <span className="ml-2 text-gray-600">{item.household_locations.room_name}</span>
+                  <span className="ml-2 text-gray-600">
+                    {item.household_locations.room_name}
+                    {item.storage_containers && (
+                      <span className="text-blue-600">
+                        {" → "}{item.storage_containers.name}
+                      </span>
+                    )}
+                  </span>
                 </div>
               </div>
               
@@ -277,10 +296,32 @@ export default function NonConsumableDetailView({
             </div>
           </div>
 
-          {/* Maintenance Info */}
+          {/* Storage & Maintenance Info */}
           <div className="bg-gray-50 rounded-lg p-4">
-            <h3 className="font-medium text-gray-900 mb-3">Maintenance Info</h3>
+            <h3 className="font-medium text-gray-900 mb-3">Storage & Maintenance</h3>
             <div className="space-y-3 text-sm">
+              <div>
+                <span className="font-medium text-gray-700">Storage Location:</span>
+                <p className="text-gray-600">
+                  📍 {item.household_locations.room_name}
+                  {item.storage_containers && (
+                    <span className="block text-blue-600 mt-1">
+                      📦 {item.storage_containers.name}
+                      {item.storage_containers.container_type && (
+                        <span className="text-gray-500 ml-2">
+                          ({item.storage_containers.container_type})
+                        </span>
+                      )}
+                    </span>
+                  )}
+                </p>
+                {item.storage_containers?.description && (
+                  <p className="text-gray-500 text-xs mt-1">
+                    {item.storage_containers.description}
+                  </p>
+                )}
+              </div>
+              
               <div>
                 <span className="font-medium text-gray-700">Last Maintenance:</span>
                 <p className="text-gray-600">
@@ -290,7 +331,6 @@ export default function NonConsumableDetailView({
                   }
                 </p>
               </div>
-              
               
               {item.notes && (
                 <div>

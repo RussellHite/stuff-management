@@ -6,6 +6,7 @@ import { Plus, Edit, Trash2, Minus, QrCode, AlertTriangle, Package, Search, Filt
 import { toast } from 'react-hot-toast'
 import QRCodeGenerator from './QRCodeGenerator'
 import RichTextEditor from './RichTextEditor'
+import StorageSelector from './StorageSelector'
 
 interface Consumable {
   id: string
@@ -18,6 +19,7 @@ interface Consumable {
   reorder_info: string | null
   cost_per_unit: number | null
   primary_location_id: string | null
+  storage_container_id: string | null
   qr_code: string | null
   barcode: string | null
   expiration_date: string | null
@@ -29,6 +31,10 @@ interface Consumable {
   household_locations?: {
     id: string
     room_name: string
+  }
+  storage_containers?: {
+    name: string
+    container_type: string
   }
 }
 
@@ -52,6 +58,10 @@ export default function ConsumablesManager({ householdId, userRole, userId }: Co
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
   const [filterBy, setFilterBy] = useState<'all' | 'low_stock' | 'expired'>('all')
+  const [selectedLocationId, setSelectedLocationId] = useState('')
+  const [selectedContainerId, setSelectedContainerId] = useState<string | null>(null)
+  const [editLocationId, setEditLocationId] = useState('')
+  const [editContainerId, setEditContainerId] = useState<string | null>(null)
 
   const canEdit = userRole === 'admin' || userRole === 'manager' || userRole === 'employee'
 
@@ -69,6 +79,10 @@ export default function ConsumablesManager({ householdId, userRole, userId }: Co
           household_locations (
             id,
             room_name
+          ),
+          storage_containers (
+            name,
+            container_type
           )
         `)
         .eq('organization_id', householdId)
@@ -110,7 +124,8 @@ export default function ConsumablesManager({ householdId, userRole, userId }: Co
       reorder_threshold: parseInt(formData.get('reorder_threshold') as string) || 1,
       reorder_info: formData.get('reorder_info') as string || null,
       cost_per_unit: parseFloat(formData.get('cost_per_unit') as string) || null,
-      primary_location_id: formData.get('primary_location_id') as string || null,
+      primary_location_id: selectedLocationId || null,
+      storage_container_id: selectedContainerId,
       barcode: formData.get('barcode') as string || null,
       expiration_date: formData.get('expiration_date') as string || null,
       purchase_date: formData.get('purchase_date') as string || null,
@@ -128,6 +143,10 @@ export default function ConsumablesManager({ householdId, userRole, userId }: Co
           household_locations (
             id,
             room_name
+          ),
+          storage_containers (
+            name,
+            container_type
           )
         `)
 
@@ -135,6 +154,8 @@ export default function ConsumablesManager({ householdId, userRole, userId }: Co
       
       setConsumables([...consumables, data[0]])
       setIsAddingItem(false)
+      setSelectedLocationId('')
+      setSelectedContainerId(null)
       
       // Log activity
       await logActivity('added_item', `Added ${itemData.name} to household inventory`, data[0].id)
@@ -156,7 +177,8 @@ export default function ConsumablesManager({ householdId, userRole, userId }: Co
       reorder_threshold: parseInt(formData.get('reorder_threshold') as string) || 1,
       reorder_info: formData.get('reorder_info') as string || null,
       cost_per_unit: parseFloat(formData.get('cost_per_unit') as string) || null,
-      primary_location_id: formData.get('primary_location_id') as string || null,
+      primary_location_id: editLocationId || null,
+      storage_container_id: editContainerId,
       barcode: formData.get('barcode') as string || null,
       expiration_date: formData.get('expiration_date') as string || null,
       purchase_date: formData.get('purchase_date') as string || null,
@@ -179,6 +201,8 @@ export default function ConsumablesManager({ householdId, userRole, userId }: Co
       ))
       
       setEditingItem(null)
+      setEditLocationId('')
+      setEditContainerId(null)
       
       // Log activity
       await logActivity('updated_item', `Updated ${itemData.name} details`, editingItem.id)
@@ -368,21 +392,14 @@ export default function ConsumablesManager({ householdId, userRole, userId }: Co
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Location
-          </label>
-          <select
-            name="primary_location_id"
-            defaultValue={item?.primary_location_id || ''}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            <option value="">Select location</option>
-            {locations.map(location => (
-              <option key={location.id} value={location.id}>
-                {location.room_name}
-              </option>
-            ))}
-          </select>
+          <StorageSelector
+            householdId={householdId}
+            selectedLocationId={item ? editLocationId : selectedLocationId}
+            selectedContainerId={item ? editContainerId : selectedContainerId}
+            onLocationChange={item ? (id) => { setEditLocationId(id); setEditContainerId(null); } : (id) => { setSelectedLocationId(id); setSelectedContainerId(null); }}
+            onContainerChange={item ? setEditContainerId : setSelectedContainerId}
+            showContainerSelection={true}
+          />
         </div>
 
         <div>
@@ -466,6 +483,10 @@ export default function ConsumablesManager({ householdId, userRole, userId }: Co
           onClick={() => {
             setIsAddingItem(false)
             setEditingItem(null)
+            setSelectedLocationId('')
+            setSelectedContainerId(null)
+            setEditLocationId('')
+            setEditContainerId(null)
           }}
           className="px-4 py-2 text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200"
         >
@@ -562,7 +583,11 @@ export default function ConsumablesManager({ householdId, userRole, userId }: Co
             key={item.id}
             item={item}
             canEdit={canEdit}
-            onEdit={() => setEditingItem(item)}
+            onEdit={() => {
+              setEditingItem(item)
+              setEditLocationId(item.primary_location_id || '')
+              setEditContainerId(item.storage_container_id)
+            }}
             onDelete={() => handleDeleteItem(item.id, item.name)}
             onQuantityChange={(newQuantity) => handleQuantityChange(item.id, newQuantity, item.name)}
             onShowQRCode={() => setShowQRCode(item.qr_code)}
@@ -696,6 +721,7 @@ function ConsumableCard({
         {item.household_locations && (
           <p className="text-sm text-gray-500 mb-2">
             📍 {item.household_locations.room_name}
+            {item.storage_containers && ` → ${item.storage_containers.name}`}
           </p>
         )}
 

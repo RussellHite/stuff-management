@@ -15,6 +15,7 @@ import {
 import { toast } from 'react-hot-toast'
 import QRCodeGenerator from './QRCodeGenerator'
 import NonConsumableDetailView from './NonConsumableDetailView'
+import StorageSelector from './StorageSelector'
 
 interface NonConsumable {
   id: string
@@ -31,8 +32,13 @@ interface NonConsumable {
   is_active: boolean
   created_at: string
   primary_location_id: string
+  storage_container_id: string | null
   household_locations: {
     room_name: string
+  }
+  storage_containers?: {
+    name: string
+    container_type: string
   }
   created_by: string
   user_profiles: {
@@ -70,22 +76,31 @@ export default function NonConsumablesManager({
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedCondition, setSelectedCondition] = useState('')
   const [validationErrors, setValidationErrors] = useState<{[key: string]: string}>({})
+  const [selectedLocationId, setSelectedLocationId] = useState('')
+  const [selectedContainerId, setSelectedContainerId] = useState<string | null>(null)
+  const [editLocationId, setEditLocationId] = useState('')
+  const [editContainerId, setEditContainerId] = useState<string | null>(null)
 
   const canManageItems = userRole === 'admin' || userRole === 'manager' || userRole === 'employee'
 
-  const validateForm = (formData: FormData) => {
+  const validateForm = (formData: FormData, isEdit: boolean = false) => {
     const errors: {[key: string]: string} = {}
     
     const name = formData.get('name')?.toString().trim()
-    const locationId = formData.get('primary_location_id')?.toString().trim()
     
     // Required field validation
     if (!name) {
       errors.name = 'Name is required'
     }
     
-    if (!locationId) {
-      errors.primary_location_id = 'Location is required'
+    if (isEdit) {
+      if (!editLocationId) {
+        errors.primary_location_id = 'Location is required'
+      }
+    } else {
+      if (!selectedLocationId) {
+        errors.primary_location_id = 'Location is required'
+      }
     }
     
     return errors
@@ -107,6 +122,10 @@ export default function NonConsumablesManager({
           *,
           household_locations (
             room_name
+          ),
+          storage_containers (
+            name,
+            container_type
           ),
           user_profiles (
             first_name,
@@ -184,7 +203,8 @@ export default function NonConsumablesManager({
         purchase_date: formData.get('purchase_date') as string || null,
         warranty_expiration: formData.get('warranty_expiry') as string || null,
         purchase_price: purchasePrice ? parseFloat(purchasePrice) : null,
-        primary_location_id: formData.get('primary_location_id') as string,
+        primary_location_id: selectedLocationId,
+        storage_container_id: selectedContainerId,
         notes: formData.get('maintenance_notes') as string || null,
         created_by: userId
       }
@@ -197,6 +217,8 @@ export default function NonConsumablesManager({
       
       await fetchItems()
       setIsAdding(false)
+      setSelectedLocationId('')
+      setSelectedContainerId(null)
       toast.success('Item added successfully')
       
       // Log activity
@@ -219,7 +241,7 @@ export default function NonConsumablesManager({
       const formData = new FormData(event.currentTarget)
       
       // Validate form
-      const errors = validateForm(formData)
+      const errors = validateForm(formData, true)
       if (Object.keys(errors).length > 0) {
           setValidationErrors(errors)
         toast.error('Please fix the validation errors')
@@ -240,7 +262,8 @@ export default function NonConsumablesManager({
         purchase_date: formData.get('purchase_date') as string || null,
         warranty_expiration: formData.get('warranty_expiry') as string || null,
         purchase_price: purchasePrice ? parseFloat(purchasePrice) : null,
-        primary_location_id: formData.get('primary_location_id') as string,
+        primary_location_id: editLocationId,
+        storage_container_id: editContainerId,
         notes: formData.get('maintenance_notes') as string || null,
         updated_at: new Date().toISOString()
       }
@@ -254,6 +277,8 @@ export default function NonConsumablesManager({
       
       await fetchItems()
       setEditingItem(null)
+      setEditLocationId('')
+      setEditContainerId(null)
       toast.success('Item updated successfully')
       
       // Log activity
@@ -458,20 +483,14 @@ export default function NonConsumablesManager({
               </div>
               
               <div className={validationErrors.primary_location_id ? 'has-error' : ''}>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Location *
-                </label>
-                <select
-                  name="primary_location_id"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value="">Select location</option>
-                  {locations.map(location => (
-                    <option key={location.id} value={location.id}>
-                      {location.room_name}
-                    </option>
-                  ))}
-                </select>
+                <StorageSelector
+                  householdId={householdId}
+                  selectedLocationId={selectedLocationId}
+                  selectedContainerId={selectedContainerId}
+                  onLocationChange={setSelectedLocationId}
+                  onContainerChange={setSelectedContainerId}
+                  required={true}
+                />
                 {validationErrors.primary_location_id && (
                   <p className="mt-1 text-sm text-red-600">{validationErrors.primary_location_id}</p>
                 )}
@@ -631,7 +650,9 @@ export default function NonConsumablesManager({
                         <div>
                           <p><strong>Brand:</strong> {item.brand || 'Not specified'}</p>
                           <p><strong>Model:</strong> {item.model || 'Not specified'}</p>
-                          <p><strong>Location:</strong> {item.household_locations?.room_name}</p>
+                          <p><strong>Location:</strong> {item.household_locations?.room_name}
+                            {item.storage_containers && ` → ${item.storage_containers.name}`}
+                          </p>
                         </div>
                         <div>
                           <p><strong>Purchase Date:</strong> {item.purchase_date || 'Not specified'}</p>
@@ -672,6 +693,8 @@ export default function NonConsumablesManager({
                           <button
                             onClick={() => {
                               setEditingItem(item)
+                              setEditLocationId(item.primary_location_id)
+                              setEditContainerId(item.storage_container_id)
                               setValidationErrors({})
                             }}
                             className="p-1 text-gray-400 hover:text-blue-600"
@@ -727,7 +750,11 @@ export default function NonConsumablesManager({
               <div className="flex justify-between items-center mb-4">
                 <h3 className="text-lg font-semibold">Edit {editingItem.name}</h3>
                 <button
-                  onClick={() => setEditingItem(null)}
+                  onClick={() => {
+                    setEditingItem(null)
+                    setEditLocationId('')
+                    setEditContainerId(null)
+                  }}
                   className="text-gray-400 hover:text-gray-600"
                 >
                   ×
@@ -790,21 +817,17 @@ export default function NonConsumablesManager({
                   </div>
                   
                   <div className={validationErrors.primary_location_id ? 'has-error' : ''}>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Location *
-                    </label>
-                    <select
-                      name="primary_location_id"
-                      defaultValue={editingItem.primary_location_id}
-                      required
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    >
-                      {locations.map(location => (
-                        <option key={location.id} value={location.id}>
-                          {location.room_name}
-                        </option>
-                      ))}
-                    </select>
+                    <StorageSelector
+                      householdId={householdId}
+                      selectedLocationId={editLocationId}
+                      selectedContainerId={editContainerId}
+                      onLocationChange={(locationId) => {
+                        setEditLocationId(locationId)
+                        setEditContainerId(null)
+                      }}
+                      onContainerChange={setEditContainerId}
+                      required={true}
+                    />
                     {validationErrors.primary_location_id && (
                       <p className="mt-1 text-sm text-red-600">{validationErrors.primary_location_id}</p>
                     )}
@@ -892,7 +915,11 @@ export default function NonConsumablesManager({
                 <div className="flex justify-end space-x-3">
                   <button
                     type="button"
-                    onClick={() => setEditingItem(null)}
+                    onClick={() => {
+                      setEditingItem(null)
+                      setEditLocationId('')
+                      setEditContainerId(null)
+                    }}
                     className="px-4 py-2 text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200"
                   >
                     Cancel
