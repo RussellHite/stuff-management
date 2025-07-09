@@ -395,7 +395,7 @@ export default function ConsumablesManager({ householdId, userRole, userId }: Co
           <StorageSelector
             householdId={householdId}
             selectedLocationId={item ? editLocationId : selectedLocationId}
-            selectedContainerId={item ? editContainerId : selectedContainerId}
+            selectedContainerId={item ? editContainerId || undefined : selectedContainerId || undefined}
             onLocationChange={item ? (id) => { setEditLocationId(id); setEditContainerId(null); } : (id) => { setSelectedLocationId(id); setSelectedContainerId(null); }}
             onContainerChange={item ? setEditContainerId : setSelectedContainerId}
             showContainerSelection={true}
