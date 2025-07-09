@@ -11,7 +11,9 @@ interface ConsumableStatus {
   reorder_threshold: number
   household_locations?: {
     room_name: string
-  } | null
+  } | {
+    room_name: string
+  }[] | null
 }
 
 interface InventoryStatusProps {
@@ -153,7 +155,10 @@ export default function InventoryStatus({ householdId, compact = false }: Invent
                         {item.name}
                       </p>
                       <p className="text-xs text-gray-500">
-                        {item.household_locations?.room_name || 'No location'}
+                        {Array.isArray(item.household_locations) 
+                          ? item.household_locations[0]?.room_name || 'No location'
+                          : item.household_locations?.room_name || 'No location'
+                        }
                       </p>
                     </div>
                     <div className={`px-2 py-1 rounded-full text-xs font-medium ${getStockLevelColor(level)}`}>
