@@ -443,19 +443,61 @@ export default function LocationManager({ householdId, userRole }: LocationManag
         )}
       </div>
 
-      {/* Add Location Form */}
+      {/* Add Location Modal */}
       {isAddingLocation && (
-        <div className="bg-white p-6 rounded-lg shadow-md border">
-          <h3 className="text-lg font-semibold mb-4">Add New Location</h3>
-          <LocationForm onSubmit={handleAddLocation} />
+        <div 
+          className="fixed inset-0 bg-gradient-to-br from-blue-500/75 to-purple-600/75 flex items-center justify-center p-4 z-50"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              setIsAddingLocation(false)
+              setSelectedTags([])
+            }
+          }}
+        >
+          <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-lg font-semibold">Add New Location</h3>
+                <button
+                  onClick={() => {
+                    setIsAddingLocation(false)
+                    setSelectedTags([])
+                  }}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  ×
+                </button>
+              </div>
+              <LocationForm onSubmit={handleAddLocation} />
+            </div>
+          </div>
         </div>
       )}
 
-      {/* Edit Location Form */}
+      {/* Edit Location Modal */}
       {editingLocation && (
-        <div className="bg-white p-6 rounded-lg shadow-md border">
-          <h3 className="text-lg font-semibold mb-4">Edit Location</h3>
-          <LocationForm location={editingLocation} onSubmit={handleEditLocation} />
+        <div 
+          className="fixed inset-0 bg-gradient-to-br from-blue-500/75 to-purple-600/75 flex items-center justify-center p-4 z-50"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              setEditingLocation(null)
+            }
+          }}
+        >
+          <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-lg font-semibold">Edit Location</h3>
+                <button
+                  onClick={() => setEditingLocation(null)}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  ×
+                </button>
+              </div>
+              <LocationForm location={editingLocation} onSubmit={handleEditLocation} />
+            </div>
+          </div>
         </div>
       )}
 

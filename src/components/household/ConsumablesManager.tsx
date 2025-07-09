@@ -551,19 +551,69 @@ export default function ConsumablesManager({ householdId, userRole, userId }: Co
         </div>
       </div>
 
-      {/* Add Item Form */}
+      {/* Add Item Modal */}
       {isAddingItem && (
-        <div className="bg-white p-6 rounded-lg shadow-md border">
-          <h3 className="text-lg font-semibold mb-4">Add New Consumable</h3>
-          <ConsumableForm onSubmit={handleAddItem} />
+        <div 
+          className="fixed inset-0 bg-gradient-to-br from-blue-500/75 to-purple-600/75 flex items-center justify-center p-4 z-50"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              setIsAddingItem(false)
+              setSelectedLocationId('')
+              setSelectedContainerId(null)
+            }
+          }}
+        >
+          <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-lg font-semibold">Add New Consumable</h3>
+                <button
+                  onClick={() => {
+                    setIsAddingItem(false)
+                    setSelectedLocationId('')
+                    setSelectedContainerId(null)
+                  }}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  ×
+                </button>
+              </div>
+              <ConsumableForm onSubmit={handleAddItem} />
+            </div>
+          </div>
         </div>
       )}
 
-      {/* Edit Item Form */}
+      {/* Edit Item Modal */}
       {editingItem && (
-        <div className="bg-white p-6 rounded-lg shadow-md border">
-          <h3 className="text-lg font-semibold mb-4">Edit Consumable</h3>
-          <ConsumableForm item={editingItem} onSubmit={handleEditItem} />
+        <div 
+          className="fixed inset-0 bg-gradient-to-br from-blue-500/75 to-purple-600/75 flex items-center justify-center p-4 z-50"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              setEditingItem(null)
+              setEditLocationId('')
+              setEditContainerId(null)
+            }
+          }}
+        >
+          <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-lg font-semibold">Edit Consumable</h3>
+                <button
+                  onClick={() => {
+                    setEditingItem(null)
+                    setEditLocationId('')
+                    setEditContainerId(null)
+                  }}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  ×
+                </button>
+              </div>
+              <ConsumableForm item={editingItem} onSubmit={handleEditItem} />
+            </div>
+          </div>
         </div>
       )}
 

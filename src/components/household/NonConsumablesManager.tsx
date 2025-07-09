@@ -10,7 +10,8 @@ import {
   Clock,
   Package,
   Search,
-  Eye
+  Eye,
+  Filter
 } from 'lucide-react'
 import { toast } from 'react-hot-toast'
 import QRCodeGenerator from './QRCodeGenerator'
@@ -374,10 +375,7 @@ export default function NonConsumablesManager({
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <div>
-          <h2 className="text-2xl font-bold text-gray-900">🔧 Non-Consumables</h2>
-          <p className="text-gray-600 mt-1">Manage tools, equipment, and household items</p>
-        </div>
+        <h2 className="text-2xl font-bold text-gray-900">🔧 Household Items</h2>
         {canManageItems && (
           <button
             onClick={() => {
@@ -394,23 +392,23 @@ export default function NonConsumablesManager({
       </div>
 
       {/* Search and Filter Controls */}
-      <div className="bg-white p-4 rounded-lg shadow-sm border">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="relative">
-            <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-            <input
-              type="text"
-              placeholder="Search items..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-          
+      <div className="flex flex-col sm:flex-row gap-4">
+        <div className="flex-1 relative">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+          <input
+            type="text"
+            placeholder="Search household items..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+        </div>
+        <div className="flex items-center space-x-2">
+          <Filter className="h-4 w-4 text-gray-400" />
           <select
             value={selectedCondition}
             onChange={(e) => setSelectedCondition(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
             <option value="">All Conditions</option>
             {conditions.map(condition => (
@@ -422,10 +420,35 @@ export default function NonConsumablesManager({
         </div>
       </div>
 
-      {/* Add Item Form */}
+      {/* Add Item Modal */}
       {isAdding && (
-        <div className="bg-white p-6 rounded-lg shadow-md border">
-          <h3 className="text-lg font-semibold mb-4">Add New Item</h3>
+        <div 
+          className="fixed inset-0 bg-gradient-to-br from-blue-500/75 to-purple-600/75 flex items-center justify-center p-4 z-50"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              setIsAdding(false)
+              setSelectedLocationId('')
+              setSelectedContainerId(null)
+              setValidationErrors({})
+            }
+          }}
+        >
+          <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-lg font-semibold">Add New Item</h3>
+                <button
+                  onClick={() => {
+                    setIsAdding(false)
+                    setSelectedLocationId('')
+                    setSelectedContainerId(null)
+                    setValidationErrors({})
+                  }}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  ×
+                </button>
+              </div>
           <form onSubmit={(e) => {
             console.log('Form onSubmit triggered')
             addItem(e)
@@ -576,7 +599,12 @@ export default function NonConsumablesManager({
             <div className="flex justify-end space-x-3">
               <button
                 type="button"
-                onClick={() => setIsAdding(false)}
+                onClick={() => {
+                  setIsAdding(false)
+                  setSelectedLocationId('')
+                  setSelectedContainerId(null)
+                  setValidationErrors({})
+                }}
                 className="px-4 py-2 text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200"
               >
                 Cancel
@@ -612,117 +640,65 @@ export default function NonConsumablesManager({
               </button>
             </div>
           </form>
+            </div>
+          </div>
         </div>
       )}
 
-      {/* Items List */}
-      <div className="bg-white rounded-lg shadow">
-        <div className="p-6 border-b border-gray-200">
-          <h3 className="text-lg font-semibold text-gray-900">
-            Items ({getFilteredItems().length})
-          </h3>
-        </div>
-        
-        {getFilteredItems().length === 0 ? (
-          <div className="p-8 text-center text-gray-500">
-            <Package className="h-12 w-12 mx-auto mb-4 text-gray-400" />
-            <p>No items found matching your search criteria.</p>
-          </div>
-        ) : (
-          <div className="divide-y divide-gray-200">
-            {getFilteredItems().map((item) => {
-              const conditionConfig = getConditionDisplay(item.current_quality_rating)
-              
-              return (
-                <div key={item.id} className="p-6 hover:bg-gray-50">
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center space-x-3 mb-2">
-                        <h4 className="text-lg font-medium text-gray-900">
-                          {item.name}
-                        </h4>
-                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${conditionConfig.color}`}>
-                          {conditionConfig.icon} {conditionConfig.label}
-                        </span>
-                      </div>
-                      
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-600 mb-3">
-                        <div>
-                          <p><strong>Brand:</strong> {item.brand || 'Not specified'}</p>
-                          <p><strong>Model:</strong> {item.model || 'Not specified'}</p>
-                          <p><strong>Location:</strong> {item.household_locations?.room_name}
-                            {item.storage_containers && ` → ${item.storage_containers.name}`}
-                          </p>
-                        </div>
-                        <div>
-                          <p><strong>Purchase Date:</strong> {item.purchase_date || 'Not specified'}</p>
-                          <p><strong>Notes:</strong> {item.notes || 'None'}</p>
-                          <p><strong>Added by:</strong> {item.user_profiles?.first_name} {item.user_profiles?.last_name}</p>
-                        </div>
-                      </div>
-                      
-                      {item.description && (
-                        <p className="text-sm text-gray-600 mb-3">{item.description}</p>
-                      )}
-                      
-                      <div className="flex items-center text-xs text-gray-500">
-                        <Clock className="h-3 w-3 mr-1" />
-                        Added {new Date(item.created_at).toLocaleDateString()}
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-center space-x-2 ml-4">
-                      <button
-                        onClick={() => setViewingDetail(item.id)}
-                        className="p-1 text-gray-400 hover:text-green-600"
-                        title="View details"
-                      >
-                        <Eye className="h-4 w-4" />
-                      </button>
-                      
-                      <button
-                        onClick={() => setShowQRCode(item)}
-                        className="p-1 text-gray-400 hover:text-blue-600"
-                        title="Generate QR Code"
-                      >
-                        <QrCode className="h-4 w-4" />
-                      </button>
-                      
-                      {canManageItems && (
-                        <>
-                          <button
-                            onClick={() => {
-                              setEditingItem(item)
-                              setEditLocationId(item.primary_location_id)
-                              setEditContainerId(item.storage_container_id)
-                              setValidationErrors({})
-                            }}
-                            className="p-1 text-gray-400 hover:text-blue-600"
-                            title="Edit item"
-                          >
-                            <Edit className="h-4 w-4" />
-                          </button>
-                          <button
-                            onClick={() => deleteItem(item)}
-                            className="p-1 text-gray-400 hover:text-red-600"
-                            title="Delete item"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </button>
-                        </>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              )
-            })}
-          </div>
-        )}
+      {/* Items Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {getFilteredItems().map((item) => (
+          <NonConsumableCard
+            key={item.id}
+            item={item}
+            canEdit={canManageItems}
+            onEdit={() => {
+              setEditingItem(item)
+              setEditLocationId(item.primary_location_id)
+              setEditContainerId(item.storage_container_id)
+              setValidationErrors({})
+            }}
+            onDelete={() => deleteItem(item)}
+            onShowQRCode={() => setShowQRCode(item)}
+            onViewDetail={() => setViewingDetail(item.id)}
+            getConditionDisplay={getConditionDisplay}
+          />
+        ))}
       </div>
+
+      {getFilteredItems().length === 0 && (
+        <div className="text-center py-12">
+          <div className="text-gray-400 text-6xl mb-4">🔧</div>
+          <h3 className="text-lg font-medium text-gray-900 mb-2">
+            {searchTerm || selectedCondition ? 'No items found' : 'No household items yet'}
+          </h3>
+          <p className="text-gray-500 mb-4">
+            {searchTerm || selectedCondition 
+              ? 'Try adjusting your search or filter criteria'
+              : 'Add your first household item to get started'
+            }
+          </p>
+          {canManageItems && !searchTerm && !selectedCondition && (
+            <button
+              onClick={() => setIsAdding(true)}
+              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+            >
+              Add First Item
+            </button>
+          )}
+        </div>
+      )}
 
       {/* QR Code Modal */}
       {showQRCode && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+        <div 
+          className="fixed inset-0 bg-gradient-to-br from-blue-500/75 to-purple-600/75 flex items-center justify-center p-4 z-50"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              setShowQRCode(null)
+            }
+          }}
+        >
           <div className="bg-white rounded-lg max-w-md w-full p-6">
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-lg font-semibold">QR Code for {showQRCode.name}</h3>
@@ -744,7 +720,16 @@ export default function NonConsumablesManager({
 
       {/* Edit Item Modal */}
       {editingItem && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+        <div 
+          className="fixed inset-0 bg-gradient-to-br from-blue-500/75 to-purple-600/75 flex items-center justify-center p-4 z-50"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              setEditingItem(null)
+              setEditLocationId('')
+              setEditContainerId(null)
+            }
+          }}
+        >
           <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6">
               <div className="flex justify-between items-center mb-4">
@@ -936,6 +921,109 @@ export default function NonConsumablesManager({
           </div>
         </div>
       )}
+    </div>
+  )
+}
+
+function NonConsumableCard({ 
+  item, 
+  canEdit, 
+  onEdit, 
+  onDelete, 
+  onShowQRCode,
+  onViewDetail,
+  getConditionDisplay
+}: {
+  item: NonConsumable
+  canEdit: boolean
+  onEdit: () => void
+  onDelete: () => void
+  onShowQRCode: () => void
+  onViewDetail: () => void
+  getConditionDisplay: (condition: string) => any
+}) {
+  const conditionConfig = getConditionDisplay(item.current_quality_rating)
+  
+  return (
+    <div className="bg-white rounded-lg shadow-md border overflow-hidden">
+      <div className="p-4">
+        <div className="flex justify-between items-start mb-2">
+          <h3 className="text-lg font-semibold text-gray-900 line-clamp-1">{item.name}</h3>
+          {canEdit && (
+            <div className="flex space-x-1">
+              <button
+                onClick={onEdit}
+                className="p-1 text-gray-400 hover:text-blue-600"
+                title="Edit item"
+              >
+                <Edit className="h-4 w-4" />
+              </button>
+              <button
+                onClick={onDelete}
+                className="p-1 text-gray-400 hover:text-red-600"
+                title="Delete item"
+              >
+                <Trash2 className="h-4 w-4" />
+              </button>
+            </div>
+          )}
+        </div>
+
+        {/* Condition Badge */}
+        <div className="mb-3">
+          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${conditionConfig.color}`}>
+            {conditionConfig.icon} {conditionConfig.label}
+          </span>
+        </div>
+
+        {/* Item Details */}
+        <div className="space-y-2 text-sm text-gray-600 mb-3">
+          {item.brand && (
+            <p><strong>Brand:</strong> {item.brand}</p>
+          )}
+          {item.model && (
+            <p><strong>Model:</strong> {item.model}</p>
+          )}
+          {item.household_locations && (
+            <p><strong>Location:</strong> {item.household_locations.room_name}
+              {item.storage_containers && ` → ${item.storage_containers.name}`}
+            </p>
+          )}
+          {item.purchase_date && (
+            <p><strong>Purchased:</strong> {new Date(item.purchase_date).toLocaleDateString()}</p>
+          )}
+        </div>
+
+        {/* Description */}
+        {item.description && (
+          <p className="text-sm text-gray-600 mb-3 line-clamp-2">{item.description}</p>
+        )}
+
+        {/* Action Buttons */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-2">
+            <button
+              onClick={onViewDetail}
+              className="p-1 text-gray-400 hover:text-green-600"
+              title="View details"
+            >
+              <Eye className="h-4 w-4" />
+            </button>
+            <button
+              onClick={onShowQRCode}
+              className="p-1 text-gray-400 hover:text-blue-600"
+              title="Generate QR Code"
+            >
+              <QrCode className="h-4 w-4" />
+            </button>
+          </div>
+          
+          <div className="flex items-center text-xs text-gray-500">
+            <Clock className="h-3 w-3 mr-1" />
+            {new Date(item.created_at).toLocaleDateString()}
+          </div>
+        </div>
+      </div>
     </div>
   )
 }
