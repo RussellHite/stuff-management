@@ -138,30 +138,32 @@ export default function OnboardingWizard({ userId, onComplete, onSkip }: Onboard
   }
 
   return (
-    <div className="fixed inset-0 bg-gradient-to-br from-blue-500/75 to-purple-600/75 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col mx-4">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
+      <div className="max-w-4xl mx-auto">
         {/* Header with Progress */}
-        <div className="border-b p-6">
-          <div className="flex justify-between items-center mb-4">
-            <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-              Welcome to Stuff Happens
-            </h1>
-            {currentStep > 0 && (
-              <span className="text-sm text-gray-500">
-                Step {currentStep + 1} of {STEPS.length}
-              </span>
-            )}
+        <div className="bg-white border-b shadow-sm">
+          <div className="px-6 py-8">
+            <div className="flex justify-between items-center mb-6">
+              <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                Welcome to Stuff Happens
+              </h1>
+              {currentStep > 0 && (
+                <span className="text-sm text-gray-500 bg-gray-100 px-3 py-1 rounded-full">
+                  Step {currentStep + 1} of {STEPS.length}
+                </span>
+              )}
+            </div>
+            
+            <ProgressIndicator 
+              currentStep={currentStep} 
+              totalSteps={STEPS.length}
+              stepLabels={STEPS}
+            />
           </div>
-          
-          <ProgressIndicator 
-            currentStep={currentStep} 
-            totalSteps={STEPS.length}
-            stepLabels={STEPS}
-          />
         </div>
 
         {/* Step Content */}
-        <div className="flex-1 overflow-y-auto">
+        <div className="bg-white min-h-[calc(100vh-200px)]">
           {renderCurrentStep()}
         </div>
       </div>
