@@ -225,7 +225,10 @@ export default function InventoryStatus({ householdId, compact = false }: Invent
                       <div>
                         <p className="font-medium text-gray-900">{item.name}</p>
                         <p className="text-sm text-gray-500">
-                          {item.household_locations?.room_name || 'No location'} • 
+                          {Array.isArray(item.household_locations) 
+                            ? item.household_locations[0]?.room_name || 'No location'
+                            : item.household_locations?.room_name || 'No location'
+                          } • 
                           Reorder at {item.reorder_threshold}
                         </p>
                       </div>
