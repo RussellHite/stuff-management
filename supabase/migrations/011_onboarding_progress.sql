@@ -27,17 +27,33 @@ ADD COLUMN IF NOT EXISTS default_containers_created BOOLEAN DEFAULT FALSE;
 ALTER TABLE onboarding_progress ENABLE ROW LEVEL SECURITY;
 
 -- Users can only see and modify their own onboarding progress
-CREATE POLICY "Users can view own onboarding progress" ON onboarding_progress
-  FOR SELECT USING (auth.uid() = user_id);
+DO $$ BEGIN
+    CREATE POLICY "Users can view own onboarding progress" ON onboarding_progress
+      FOR SELECT USING (auth.uid() = user_id);
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
-CREATE POLICY "Users can insert own onboarding progress" ON onboarding_progress
-  FOR INSERT WITH CHECK (auth.uid() = user_id);
+DO $$ BEGIN
+    CREATE POLICY "Users can insert own onboarding progress" ON onboarding_progress
+      FOR INSERT WITH CHECK (auth.uid() = user_id);
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
-CREATE POLICY "Users can update own onboarding progress" ON onboarding_progress
-  FOR UPDATE USING (auth.uid() = user_id);
+DO $$ BEGIN
+    CREATE POLICY "Users can update own onboarding progress" ON onboarding_progress
+      FOR UPDATE USING (auth.uid() = user_id);
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
-CREATE POLICY "Users can delete own onboarding progress" ON onboarding_progress
-  FOR DELETE USING (auth.uid() = user_id);
+DO $$ BEGIN
+    CREATE POLICY "Users can delete own onboarding progress" ON onboarding_progress
+      FOR DELETE USING (auth.uid() = user_id);
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
 -- Create updated_at trigger for onboarding_progress
 CREATE OR REPLACE FUNCTION update_onboarding_progress_updated_at()
@@ -48,6 +64,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+DROP TRIGGER IF EXISTS onboarding_progress_updated_at ON onboarding_progress;
 CREATE TRIGGER onboarding_progress_updated_at
   BEFORE UPDATE ON onboarding_progress
   FOR EACH ROW
@@ -68,6 +85,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+DROP TRIGGER IF EXISTS cleanup_onboarding_on_completion ON organizations;
 CREATE TRIGGER cleanup_onboarding_on_completion
   AFTER UPDATE ON organizations
   FOR EACH ROW
