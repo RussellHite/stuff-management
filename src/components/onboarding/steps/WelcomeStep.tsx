@@ -72,7 +72,7 @@ export default function WelcomeStep({ onComplete, onSkip, initialData }: Welcome
   }
 
   return (
-    <div className="p-6 sm:p-8">
+    <div className="p-8 sm:p-12">
       <div className="max-w-2xl mx-auto text-center">
         {/* Welcome Header */}
         <div className="mb-8">

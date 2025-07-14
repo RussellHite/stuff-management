@@ -91,7 +91,7 @@ export default function RoomConfigStep({ onComplete, onBack, initialData }: Room
   }
 
   return (
-    <div className="p-6 sm:p-8">
+    <div className="p-8 sm:p-12">
       <div className="max-w-3xl mx-auto">
         <div className="text-center mb-8">
           <Home className="w-12 h-12 text-blue-500 mx-auto mb-4" />

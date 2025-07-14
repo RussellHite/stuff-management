@@ -2,27 +2,23 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import OnboardingWizard, { OnboardingData } from '@/components/onboarding/OnboardingWizard'
+import { OnboardingData } from '@/components/onboarding/OnboardingWizard'
 
 export default function TestOnboardingPage() {
-  const [showOnboarding, setShowOnboarding] = useState(true)
   const [completedData, setCompletedData] = useState<OnboardingData | null>(null)
   const router = useRouter()
 
   const handleOnboardingComplete = (data: OnboardingData) => {
     console.log('Onboarding completed with data:', data)
     setCompletedData(data)
-    setShowOnboarding(false)
   }
 
   const handleSkip = () => {
     console.log('Onboarding skipped')
-    setShowOnboarding(false)
   }
 
-  const handleRestart = () => {
-    setCompletedData(null)
-    setShowOnboarding(true)
+  const startOnboarding = () => {
+    router.push('/onboarding')
   }
 
   return (
@@ -44,10 +40,10 @@ export default function TestOnboardingPage() {
           
           <div className="flex flex-wrap gap-4">
             <button
-              onClick={handleRestart}
+              onClick={startOnboarding}
               className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
             >
-              {showOnboarding ? 'Restart' : 'Start'} Onboarding
+              Start Onboarding
             </button>
             
             <button
@@ -67,7 +63,7 @@ export default function TestOnboardingPage() {
         </div>
 
         {/* Completion Summary */}
-        {completedData && !showOnboarding && (
+        {completedData && (
           <div className="bg-white rounded-lg shadow-md p-6">
             <h2 className="text-lg font-semibold text-gray-900 mb-4">
               ✅ Onboarding Completed!
@@ -119,14 +115,20 @@ export default function TestOnboardingPage() {
         )}
       </div>
 
-      {/* Onboarding Wizard */}
-      {showOnboarding && (
-        <OnboardingWizard
-          userId="test-user-id"
-          onComplete={handleOnboardingComplete}
-          onSkip={handleSkip}
-        />
-      )}
+      {/* Instructions */}
+      <div className="max-w-4xl mx-auto px-4 pb-8">
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
+          <h3 className="text-lg font-semibold text-blue-900 mb-2">
+            How to Test Onboarding
+          </h3>
+          <div className="text-blue-800 space-y-2">
+            <p>1. Click "Start Onboarding" to navigate to the full onboarding flow</p>
+            <p>2. Complete the steps to create a household and set up your inventory</p>
+            <p>3. The onboarding is now a full page experience, not a popup</p>
+            <p>4. You can navigate back here or to the dashboard at any time</p>
+          </div>
+        </div>
+      </div>
     </div>
   )
 }
