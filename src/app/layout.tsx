@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { Toaster } from "react-hot-toast";
 import EnvironmentBadge from "@/components/layout/EnvironmentBadge";
+import EnvironmentDebug from "@/components/EnvironmentDebug";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -31,6 +32,7 @@ export default function RootLayout({
       >
         {children}
         <EnvironmentBadge />
+        <EnvironmentDebug />
         <Toaster
           position="top-right"
           toastOptions={{
