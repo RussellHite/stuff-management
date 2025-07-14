@@ -1,5 +1,6 @@
 'use client'
 
+// Environment debug component for verifying Supabase configuration
 import { currentEnvironment, debugConfig } from '@/lib/supabase/client'
 
 export default function EnvironmentDebug() {
