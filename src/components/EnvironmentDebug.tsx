@@ -1,9 +1,27 @@
 'use client'
 
 // Environment debug component for verifying Supabase configuration
-import { currentEnvironment, debugConfig } from '@/lib/supabase/client'
+import { useState, useEffect } from 'react'
 
 export default function EnvironmentDebug() {
+  const [debugInfo, setDebugInfo] = useState<any>(null)
+  
+  useEffect(() => {
+    // Only run on client side to avoid hydration mismatch
+    const loadDebugInfo = async () => {
+      const { currentEnvironment, debugConfig } = await import('@/lib/supabase/client')
+      setDebugInfo({ currentEnvironment, debugConfig })
+    }
+    
+    loadDebugInfo()
+  }, [])
+
+  if (!debugInfo) {
+    return null // Don't render anything during SSR
+  }
+
+  const { currentEnvironment, debugConfig } = debugInfo
+
   return (
     <div style={{ 
       position: 'fixed', 
