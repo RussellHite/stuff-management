@@ -1,5 +1,9 @@
 -- Add type column to organizations table for household support
-CREATE TYPE organization_type AS ENUM ('company', 'household', 'team', 'other');
+DO $$ BEGIN
+    CREATE TYPE organization_type AS ENUM ('company', 'household', 'team', 'other');
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
 -- Create basic tables if they don't exist (in case initial migrations weren't run)
 CREATE TABLE IF NOT EXISTS organizations (
