@@ -509,7 +509,7 @@ export default function NonConsumablesManager({
                 <StorageSelector
                   householdId={householdId}
                   selectedLocationId={selectedLocationId}
-                  selectedContainerId={selectedContainerId}
+                  selectedContainerId={selectedContainerId || undefined}
                   onLocationChange={setSelectedLocationId}
                   onContainerChange={setSelectedContainerId}
                   required={true}
@@ -805,7 +805,7 @@ export default function NonConsumablesManager({
                     <StorageSelector
                       householdId={householdId}
                       selectedLocationId={editLocationId}
-                      selectedContainerId={editContainerId}
+                      selectedContainerId={editContainerId || undefined}
                       onLocationChange={(locationId) => {
                         setEditLocationId(locationId)
                         setEditContainerId(null)

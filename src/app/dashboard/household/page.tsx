@@ -61,18 +61,18 @@ export default async function HouseholdDashboard() {
   )
 
   // Get recent family activity
-  const { data: recentActivity } = await supabase
-    .from('family_activity_log')
-    .select(`
-      *,
-      user_profiles (
-        first_name,
-        last_name
-      )
-    `)
-    .eq('organization_id', householdId)
-    .order('created_at', { ascending: false })
-    .limit(10)
+  // const { data: recentActivity } = await supabase
+  //   .from('family_activity_log')
+  //   .select(`
+  //     *,
+  //     user_profiles (
+  //       first_name,
+  //       last_name
+  //     )
+  //   `)
+  //   .eq('organization_id', householdId)
+  //   .order('created_at', { ascending: false })
+  //   .limit(10)
 
   // Get household locations
   const { data: locations } = await supabase
@@ -116,11 +116,11 @@ export default async function HouseholdDashboard() {
     .in('current_condition', ['poor', 'broken'])
 
   // Get condition breakdown
-  const { data: conditionBreakdown } = await supabase
-    .from('non_consumables')
-    .select('current_condition')
-    .eq('organization_id', householdId)
-    .eq('is_active', true)
+  // const { data: conditionBreakdown } = await supabase
+  //   .from('non_consumables')
+  //   .select('current_condition')
+  //   .eq('organization_id', householdId)
+  //   .eq('is_active', true)
 
   const familyRole = household.role === 'admin' ? 'household_admin' : 
                     household.role === 'manager' || household.role === 'employee' ? 'family_member' : 'kids_limited'

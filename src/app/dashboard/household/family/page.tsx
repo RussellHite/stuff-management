@@ -49,7 +49,7 @@ export default async function FamilyManagementPage() {
         <div className="flex items-center justify-center h-96">
           <div className="text-center">
             <h1 className="text-2xl font-bold text-gray-900 mb-4">Access Denied</h1>
-            <p className="text-gray-600 mb-4">You don't have permission to manage family members.</p>
+            <p className="text-gray-600 mb-4">You don&apos;t have permission to manage family members.</p>
             <a 
               href="/dashboard/household" 
               className="text-blue-600 hover:text-blue-700"
