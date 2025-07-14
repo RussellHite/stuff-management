@@ -27,13 +27,13 @@ export default function WelcomeStep({ onComplete, onSkip, initialData }: Welcome
     setIsCreating(true)
     
     try {
-      // Create the household organization
+      // Create the household organization (without onboarding_completed for now)
       const { data: household, error: householdError } = await supabase
         .from('organizations')
         .insert([{
           name: householdName.trim(),
-          type: 'household',
-          onboarding_completed: false
+          type: 'household'
+          // onboarding_completed: false - temporarily removed due to schema cache issue
         }])
         .select()
         .single()
