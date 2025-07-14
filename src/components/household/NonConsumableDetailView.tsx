@@ -28,12 +28,14 @@ interface NonConsumableDetail {
   model: string
   serial_number: string
   current_quality_rating: string
+  current_condition: string
   purchase_date: string
   warranty_expiration: string
   purchase_price: number
   notes: string
   created_at: string
   updated_at: string
+  last_maintenance_date?: string
   household_locations: {
     id: string
     room_name: string
