@@ -27,12 +27,14 @@ export default function WelcomeStep({ onComplete, onSkip, initialData }: Welcome
     setIsCreating(true)
     
     try {
-      // Create the household organization (without onboarding_completed for now)
+      // Create the household organization (minimal fields due to schema cache issues)
+      const slug = householdName.trim().toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')
       const { data: household, error: householdError } = await supabase
         .from('organizations')
         .insert([{
           name: householdName.trim(),
-          type: 'household'
+          slug: slug || `household-${Date.now()}`
+          // type: 'household' - temporarily removed due to schema cache issue
           // onboarding_completed: false - temporarily removed due to schema cache issue
         }])
         .select()
