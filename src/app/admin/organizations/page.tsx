@@ -59,29 +59,20 @@ export default async function AdminOrganizationsPage() {
     return acc
   }, {} as Record<string, any[]>) || {}
 
-  // Get creator profiles separately
-  const creatorIds = organizations?.map(org => org.created_by).filter(Boolean) || []
-  const { data: creatorProfiles } = await supabase
-    .from('user_profiles')
-    .select('id, email, first_name, last_name')
-    .in('id', creatorIds)
-
-  const creatorProfilesMap = creatorProfiles?.reduce((acc, profile) => {
-    acc[profile.id] = profile
-    return acc
-  }, {} as Record<string, any>) || {}
-
   const enrichedOrganizations = organizations?.map(org => {
-    const creatorProfile = org.created_by ? creatorProfilesMap[org.created_by] : null
+    // Get the first admin as the "owner" since there's no created_by field
+    const adminMembers = org.organization_members?.filter((m: any) => m.role === 'admin') || []
+    const ownerMember = adminMembers[0] // First admin is considered owner
+    
     return {
       ...org,
       memberCount: org.organization_members?.length || 0,
-      adminCount: org.organization_members?.filter((m: any) => m.role === 'admin').length || 0,
+      adminCount: adminMembers.length,
       latestAnalytics: analyticsMap[org.id]?.[0] || null,
       tags: org.tags || null,
-      ownerEmail: creatorProfile?.email || null,
-      ownerName: creatorProfile ? `${creatorProfile.first_name} ${creatorProfile.last_name}`.trim() : null,
-      adminEmails: org.organization_members?.filter((m: any) => m.role === 'admin').map((m: any) => m.user_profiles?.email).filter(Boolean) || []
+      ownerEmail: ownerMember?.user_profiles?.email || null,
+      ownerName: ownerMember?.user_profiles ? `${ownerMember.user_profiles.first_name} ${ownerMember.user_profiles.last_name}`.trim() : null,
+      adminEmails: adminMembers.map((m: any) => m.user_profiles?.email).filter(Boolean) || []
     }
   }) || []
 
