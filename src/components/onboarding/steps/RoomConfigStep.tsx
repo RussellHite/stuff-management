@@ -175,12 +175,12 @@ export default function RoomConfigStep({ onComplete, onBack, initialData }: Room
             <h3 className="text-lg font-semibold text-gray-900 mb-4">Additional Rooms</h3>
             <p className="text-sm text-gray-600 mb-4">Kitchen and Living Room are included by default</p>
             
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-6">
+            <div className="flex flex-wrap gap-3 mb-6">
               {additionalRooms.map(room => (
                 <button
                   key={room}
                   onClick={() => handleRoomToggle(room)}
-                  className={`p-3 rounded-lg border-2 transition-all text-sm font-medium ${
+                  className={`px-4 py-3 rounded-lg border-2 transition-all text-sm font-medium whitespace-nowrap ${
                     selectedRooms.includes(room)
                       ? 'border-blue-500 bg-blue-50 text-blue-700'
                       : 'border-gray-300 bg-white text-gray-700 hover:border-gray-400'
