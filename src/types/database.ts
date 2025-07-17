@@ -24,6 +24,7 @@ export interface Database {
           description: string | null
           logo_url: string | null
           settings: Json
+          tags: Json
           created_at: string
           updated_at: string
         }
@@ -34,6 +35,7 @@ export interface Database {
           description?: string | null
           logo_url?: string | null
           settings?: Json
+          tags?: Json
           created_at?: string
           updated_at?: string
         }
@@ -44,6 +46,7 @@ export interface Database {
           description?: string | null
           logo_url?: string | null
           settings?: Json
+          tags?: Json
           created_at?: string
           updated_at?: string
         }
