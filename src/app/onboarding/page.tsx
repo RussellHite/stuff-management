@@ -50,7 +50,7 @@ export default function OnboardingPage() {
       }
 
       toast.success('Welcome to Stuff Happens! Your household is all set up.')
-      router.push('/dashboard')
+      router.push('/dashboard/household')
     } catch (error) {
       console.error('Error completing onboarding:', error)
       toast.error('Error completing setup')
@@ -59,7 +59,7 @@ export default function OnboardingPage() {
 
   const handleSkip = () => {
     toast.success('You can complete setup later from your dashboard')
-    router.push('/dashboard')
+    router.push('/dashboard/household')
   }
 
   if (isLoading) {

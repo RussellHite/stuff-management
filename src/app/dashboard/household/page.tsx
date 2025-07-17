@@ -17,7 +17,7 @@ export default async function HouseholdDashboard() {
     .eq('id', user.id)
     .single()
 
-  const { data: household } = await supabase
+  const { data: householdMembers, error: householdError } = await supabase
     .from('organization_members')
     .select(`
       *,
@@ -29,9 +29,46 @@ export default async function HouseholdDashboard() {
       )
     `)
     .eq('user_id', user.id)
-    .single()
+    .limit(1)
 
+  // Debug logging
+  console.log('Household query result:', { householdMembers, householdError, userId: user.id })
+
+  const household = householdMembers?.[0]
+
+  // If no household found through membership, check if user created any organizations
+  let finalHousehold = household
   if (!household?.organizations) {
+    console.log('No household found through membership, checking for organizations created by user...')
+    const { data: userOrganizations } = await supabase
+      .from('organizations')
+      .select('id, name, slug, description')
+      .eq('created_by', user.id)
+      .limit(1)
+    
+    if (userOrganizations?.[0]) {
+      console.log('Found organization created by user:', userOrganizations[0])
+      // Try to add them to the members table
+      const { error: memberError } = await supabase
+        .from('organization_members')
+        .insert([{
+          organization_id: userOrganizations[0].id,
+          user_id: user.id,
+          role: 'admin'
+        }])
+      
+      if (!memberError) {
+        finalHousehold = {
+          organization_id: userOrganizations[0].id,
+          user_id: user.id,
+          role: 'admin',
+          organizations: userOrganizations[0]
+        }
+      }
+    }
+  }
+
+  if (!finalHousehold?.organizations) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
@@ -46,7 +83,7 @@ export default async function HouseholdDashboard() {
   }
 
   // Get household statistics
-  const householdId = household.organizations.id
+  const householdId = finalHousehold.organizations.id
 
   // Get consumables needing reorder
   const { data: allConsumables } = await supabase
@@ -122,16 +159,16 @@ export default async function HouseholdDashboard() {
   //   .eq('organization_id', householdId)
   //   .eq('is_active', true)
 
-  const familyRole = household.role === 'admin' ? 'household_admin' : 
-                    household.role === 'manager' || household.role === 'employee' ? 'family_member' : 'kids_limited'
+  const familyRole = finalHousehold.role === 'admin' ? 'household_admin' : 
+                    finalHousehold.role === 'manager' || finalHousehold.role === 'employee' ? 'family_member' : 'kids_limited'
 
   return (
     <HouseholdDashboardClient
       householdId={householdId}
-      householdName={household.organizations.name}
+      householdName={finalHousehold.organizations.name}
       userName={profile?.first_name || 'Family Member'}
       familyRole={familyRole}
-      userRole={household.role}
+      userRole={finalHousehold.role}
       stats={{
         totalConsumables: totalConsumables || 0,
         totalNonConsumables: totalNonConsumables || 0,

@@ -18,6 +18,7 @@ export interface OnboardingData {
     name: string
     type: string
     hasPhoto: boolean
+    photoUrl?: string
     customName?: string
   }>
   firstContainer?: {

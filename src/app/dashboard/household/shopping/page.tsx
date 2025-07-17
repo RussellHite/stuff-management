@@ -12,7 +12,7 @@ export default async function ShoppingListPage() {
     redirect('/auth/login')
   }
 
-  const { data: household } = await supabase
+  const { data: householdMembers } = await supabase
     .from('organization_members')
     .select(`
       *,
@@ -24,7 +24,38 @@ export default async function ShoppingListPage() {
       )
     `)
     .eq('user_id', user.id)
-    .single()
+    .limit(1)
+
+  let household = householdMembers?.[0]
+
+  // If no household found through membership, check if user created any organizations
+  if (!household?.organizations) {
+    const { data: userOrganizations } = await supabase
+      .from('organizations')
+      .select('id, name, slug, description')
+      .eq('created_by', user.id)
+      .limit(1)
+    
+    if (userOrganizations?.[0]) {
+      // Try to add them to the members table
+      const { error: memberError } = await supabase
+        .from('organization_members')
+        .insert([{
+          organization_id: userOrganizations[0].id,
+          user_id: user.id,
+          role: 'admin'
+        }])
+      
+      if (!memberError) {
+        household = {
+          organization_id: userOrganizations[0].id,
+          user_id: user.id,
+          role: 'admin',
+          organizations: userOrganizations[0]
+        }
+      }
+    }
+  }
 
   if (!household?.organizations) {
     redirect('/dashboard/household')

@@ -35,6 +35,11 @@ export default async function AdminOrganizationsPage() {
           last_name,
           email
         )
+      ),
+      created_by_profile:user_profiles!organizations_created_by_fkey (
+        email,
+        first_name,
+        last_name
       )
     `)
     .order('created_at', { ascending: false })
@@ -61,7 +66,10 @@ export default async function AdminOrganizationsPage() {
     memberCount: org.organization_members?.length || 0,
     adminCount: org.organization_members?.filter((m: any) => m.role === 'admin').length || 0,
     latestAnalytics: analyticsMap[org.id]?.[0] || null,
-    tags: org.tags || null
+    tags: org.tags || null,
+    ownerEmail: org.created_by_profile?.email || null,
+    ownerName: org.created_by_profile ? `${org.created_by_profile.first_name} ${org.created_by_profile.last_name}`.trim() : null,
+    adminEmails: org.organization_members?.filter((m: any) => m.role === 'admin').map((m: any) => m.user_profiles?.email).filter(Boolean) || []
   })) || []
 
   return (

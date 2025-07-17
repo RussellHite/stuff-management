@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { usePathname } from 'next/navigation'
+import Link from 'next/link'
 import { 
   Home, 
   Package, 
@@ -86,7 +87,7 @@ export default function PageHeader({ userName, userRole }: PageHeaderProps) {
               const active = isActive(item.href)
               
               return (
-                <a
+                <Link
                   key={item.name}
                   href={item.href}
                   className={`flex items-center px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
@@ -97,7 +98,7 @@ export default function PageHeader({ userName, userRole }: PageHeaderProps) {
                 >
                   <Icon className="h-4 w-4 mr-2" />
                   {item.name}
-                </a>
+                </Link>
               )
             })}
           </nav>
@@ -165,7 +166,7 @@ export default function PageHeader({ userName, userRole }: PageHeaderProps) {
                 const active = isActive(item.href)
                 
                 return (
-                  <a
+                  <Link
                     key={item.name}
                     href={item.href}
                     className={`flex items-center px-4 py-3 text-sm font-medium transition-colors ${
@@ -177,7 +178,7 @@ export default function PageHeader({ userName, userRole }: PageHeaderProps) {
                   >
                     <Icon className="h-4 w-4 mr-3" />
                     {item.name}
-                  </a>
+                  </Link>
                 )
               })}
             </div>

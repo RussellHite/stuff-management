@@ -56,8 +56,11 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
--- Add some example tags for existing organizations
--- Note: This is optional and can be run manually
+-- Tag all existing organizations as test accounts
+-- Since all current organizations are test accounts, mark them as such
+UPDATE organizations 
+SET tags = '{"testing": "test_account", "account_status": "free_user"}'::jsonb
+WHERE tags IS NULL OR tags = '{}'::jsonb;
 
 -- Example tag categories:
 -- Account Status: free_user, subscribed_user, trial_user, suspended_user

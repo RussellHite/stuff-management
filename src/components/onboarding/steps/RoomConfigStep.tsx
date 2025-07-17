@@ -19,7 +19,7 @@ export default function RoomConfigStep({ onComplete, onBack, initialData }: Room
   const [customRooms, setCustomRooms] = useState<string[]>([])
 
   const defaultAdditionalRooms = [
-    'dining_room', 'basement', 'garage', 'mudroom', 'pantry', 
+    'kitchen', 'living_room', 'dining_room', 'basement', 'garage', 'mudroom', 'pantry', 
     'office', 'laundry_room', 'family_room', 'den', 'attic',
     'sunroom', 'porch', 'playroom'
   ]
@@ -188,7 +188,7 @@ export default function RoomConfigStep({ onComplete, onBack, initialData }: Room
           {/* Additional Rooms */}
           <div>
             <h3 className="text-lg font-semibold text-gray-900 mb-4">Additional Rooms</h3>
-            <p className="text-sm text-gray-600 mb-4">Kitchen and Living Room are included by default</p>
+            <p className="text-sm text-gray-600 mb-4">Select the rooms you have in your home</p>
             
             <div className="flex flex-wrap gap-3 mb-6">
               {additionalRooms.map(room => {

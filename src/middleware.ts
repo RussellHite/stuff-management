@@ -46,6 +46,24 @@ export async function middleware(request: NextRequest) {
 
   const { data: { user } } = await supabase.auth.getUser()
   
+  // Admin routes (requires admin authentication)
+  if (request.nextUrl.pathname.startsWith('/admin')) {
+    if (!user) {
+      return NextResponse.redirect(new URL('/auth/admin-login', request.url))
+    }
+    
+    // Check if user is an application admin
+    const { data: userProfile } = await supabase
+      .from('user_profiles')
+      .select('is_application_admin')
+      .eq('id', user.id)
+      .single()
+    
+    if (!userProfile?.is_application_admin) {
+      return NextResponse.redirect(new URL('/dashboard', request.url))
+    }
+  }
+  
   // Protected routes
   if (request.nextUrl.pathname.startsWith('/dashboard')) {
     if (!user) {

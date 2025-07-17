@@ -17,7 +17,11 @@ import {
   Home,
   Tag,
   Plus,
-  X
+  X,
+  Mail,
+  AlertTriangle,
+  CheckSquare,
+  Square
 } from 'lucide-react'
 import Link from 'next/link'
 
@@ -38,6 +42,9 @@ interface Organization {
   tags: Record<string, string> | null
   memberCount: number
   adminCount: number
+  ownerEmail: string | null
+  ownerName: string | null
+  adminEmails: string[]
   latestAnalytics: {
     total_consumables: number
     total_non_consumables: number
@@ -58,6 +65,8 @@ export default function AdminOrganizations({ organizations, adminUser }: AdminOr
   const [tagFilter, setTagFilter] = useState('')
   const [editingTags, setEditingTags] = useState<string | null>(null)
   const [newTag, setNewTag] = useState({ category: '', value: '' })
+  const [selectedOrgs, setSelectedOrgs] = useState<string[]>([])
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
 
   // Get available tag categories and values
   const tagCategories = ['account_status', 'testing', 'program', 'support']
@@ -70,8 +79,15 @@ export default function AdminOrganizations({ organizations, adminUser }: AdminOr
 
   const filteredOrganizations = organizations.filter(org => {
     const matchesSearch = org.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         org.slug.toLowerCase().includes(searchTerm.toLowerCase())
-    const matchesFilter = filterType === 'all' || org.type === filterType
+                         org.slug.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         org.ownerEmail?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         org.adminEmails.some(email => email.toLowerCase().includes(searchTerm.toLowerCase()))
+    
+    const matchesFilter = filterType === 'all' || 
+                         (filterType === 'test_accounts' && org.tags?.testing === 'test_account') ||
+                         (filterType === 'beta_testers' && org.tags?.testing === 'beta_tester') ||
+                         (filterType === 'production_users' && org.tags?.testing === 'production_user') ||
+                         org.type === filterType
     
     // Tag filter
     const matchesTag = tagFilter === '' || 
@@ -133,6 +149,42 @@ export default function AdminOrganizations({ organizations, adminUser }: AdminOr
     }
   }
 
+  const bulkDeleteOrganizations = async () => {
+    try {
+      const response = await fetch('/api/admin/organizations/bulk-delete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ organizationIds: selectedOrgs })
+      })
+      
+      if (response.ok) {
+        window.location.reload()
+      }
+    } catch (error) {
+      console.error('Error deleting organizations:', error)
+    }
+  }
+
+  const deleteOrganization = async (orgId: string) => {
+    try {
+      const response = await fetch(`/api/admin/organizations/${orgId}`, {
+        method: 'DELETE'
+      })
+      
+      if (response.ok) {
+        window.location.reload()
+      }
+    } catch (error) {
+      console.error('Error deleting organization:', error)
+    }
+  }
+
+  const isTestAccount = (org: Organization) => org.tags?.testing === 'test_account'
+  const selectedTestAccounts = selectedOrgs.filter(id => {
+    const org = organizations.find(o => o.id === id)
+    return org && isTestAccount(org)
+  })
+
   const renderTags = (organization: Organization) => {
     if (!organization.tags) return null
 
@@ -143,7 +195,9 @@ export default function AdminOrganizations({ organizations, adminUser }: AdminOr
             key={category}
             className={`px-2 py-1 text-xs rounded-full ${
               category === 'account_status' ? 'bg-blue-100 text-blue-800' :
-              category === 'testing' ? 'bg-green-100 text-green-800' :
+              category === 'testing' && value === 'test_account' ? 'bg-red-100 text-red-800' :
+              category === 'testing' && value === 'beta_tester' ? 'bg-yellow-100 text-yellow-800' :
+              category === 'testing' && value === 'production_user' ? 'bg-green-100 text-green-800' :
               category === 'program' ? 'bg-purple-100 text-purple-800' :
               category === 'support' ? 'bg-orange-100 text-orange-800' :
               'bg-gray-100 text-gray-800'
@@ -205,7 +259,10 @@ export default function AdminOrganizations({ organizations, adminUser }: AdminOr
               onChange={(e) => setFilterType(e.target.value)}
               className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
             >
-              <option value="all">All Types</option>
+              <option value="all">All Organizations</option>
+              <option value="test_accounts">Test Accounts</option>
+              <option value="beta_testers">Beta Testers</option>
+              <option value="production_users">Production Users</option>
               <option value="household">Household</option>
               <option value="business">Business</option>
               <option value="organization">Organization</option>
@@ -233,8 +290,26 @@ export default function AdminOrganizations({ organizations, adminUser }: AdminOr
             </div>
           </div>
 
-          <div className="text-sm text-gray-600">
-            {filteredOrganizations.length} of {organizations.length} organizations
+          <div className="flex items-center space-x-4">
+            {selectedOrgs.length > 0 && (
+              <div className="flex items-center space-x-2">
+                <span className="text-sm text-gray-600">
+                  {selectedOrgs.length} selected
+                </span>
+                {selectedTestAccounts.length > 0 && (
+                  <button
+                    onClick={() => setShowDeleteConfirm(true)}
+                    className="px-3 py-1 text-sm bg-red-500 text-white rounded hover:bg-red-600 flex items-center space-x-1"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                    <span>Delete Test Accounts ({selectedTestAccounts.length})</span>
+                  </button>
+                )}
+              </div>
+            )}
+            <div className="text-sm text-gray-600">
+              {filteredOrganizations.length} of {organizations.length} organizations
+            </div>
           </div>
         </div>
       </div>
@@ -307,7 +382,24 @@ export default function AdminOrganizations({ organizations, adminUser }: AdminOr
               <thead className="bg-gray-50">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Organization
+                    <div className="flex items-center space-x-2">
+                      <input
+                        type="checkbox"
+                        checked={selectedOrgs.length === filteredOrganizations.length}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setSelectedOrgs(filteredOrganizations.map(org => org.id))
+                          } else {
+                            setSelectedOrgs([])
+                          }
+                        }}
+                        className="rounded border-gray-300 text-red-600 focus:ring-red-500"
+                      />
+                      <span>Select</span>
+                    </div>
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Organization & Owner
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Type & Tags
@@ -334,13 +426,41 @@ export default function AdminOrganizations({ organizations, adminUser }: AdminOr
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
                 {filteredOrganizations.map((org) => (
-                  <tr key={org.id} className="hover:bg-gray-50">
+                  <tr key={org.id} className={`hover:bg-gray-50 ${isTestAccount(org) ? 'bg-red-50' : ''}`}>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="flex items-center space-x-3">
+                        <input
+                          type="checkbox"
+                          checked={selectedOrgs.includes(org.id)}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setSelectedOrgs([...selectedOrgs, org.id])
+                            } else {
+                              setSelectedOrgs(selectedOrgs.filter(id => id !== org.id))
+                            }
+                          }}
+                          className="rounded border-gray-300 text-red-600 focus:ring-red-500"
+                        />
+                        {isTestAccount(org) && (
+                          <AlertTriangle className="w-4 h-4 text-red-500" />
+                        )}
+                      </div>
+                    </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div>
                         <div className="text-sm font-medium text-gray-900">{org.name}</div>
                         <div className="text-sm text-gray-500">{org.slug}</div>
+                        {org.ownerEmail && (
+                          <div className="flex items-center text-sm text-gray-600 mt-1">
+                            <Mail className="w-4 h-4 mr-1" />
+                            <span className="font-medium">{org.ownerEmail}</span>
+                          </div>
+                        )}
+                        {org.ownerName && (
+                          <div className="text-xs text-gray-500">{org.ownerName}</div>
+                        )}
                         {org.description && (
-                          <div className="text-xs text-gray-400 truncate max-w-xs">
+                          <div className="text-xs text-gray-400 truncate max-w-xs mt-1">
                             {org.description}
                           </div>
                         )}
@@ -441,7 +561,15 @@ export default function AdminOrganizations({ organizations, adminUser }: AdminOr
                         <button className="text-gray-400 hover:text-gray-600">
                           <Edit className="w-4 h-4" />
                         </button>
-                        <button className="text-gray-400 hover:text-red-600">
+                        <button 
+                          onClick={() => deleteOrganization(org.id)}
+                          disabled={!isTestAccount(org)}
+                          className={`${
+                            isTestAccount(org) 
+                              ? 'text-red-400 hover:text-red-600' 
+                              : 'text-gray-200 cursor-not-allowed'
+                          }`}
+                        >
                           <Trash2 className="w-4 h-4" />
                         </button>
                       </div>
@@ -463,6 +591,39 @@ export default function AdminOrganizations({ organizations, adminUser }: AdminOr
           </div>
         )}
       </main>
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+            <h3 className="text-lg font-medium text-gray-900 mb-4">
+              Delete Test Organizations
+            </h3>
+            <p className="text-gray-600 mb-6">
+              Are you sure you want to delete {selectedTestAccounts.length} test organization(s)? 
+              This action cannot be undone and will permanently remove all associated data.
+            </p>
+            <div className="flex justify-end space-x-3">
+              <button
+                onClick={() => setShowDeleteConfirm(false)}
+                className="px-4 py-2 text-gray-600 border border-gray-300 rounded hover:bg-gray-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  setSelectedOrgs(selectedTestAccounts)
+                  bulkDeleteOrganizations()
+                  setShowDeleteConfirm(false)
+                }}
+                className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
+              >
+                Delete {selectedTestAccounts.length} Test Organization(s)
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { ArrowLeft, ArrowRight, Camera, CheckCircle2, Upload } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Camera, CheckCircle2, Upload, Trash2 } from 'lucide-react'
 import { OnboardingData } from '../OnboardingWizard'
 
 interface PhotoTourStepProps {
@@ -12,9 +12,21 @@ interface PhotoTourStepProps {
 }
 
 export default function PhotoTourStep({ onComplete, onBack, onSkip, initialData }: PhotoTourStepProps) {
-  const [roomPhotos, setRoomPhotos] = useState<Record<string, string>>({})
+  const [roomPhotos, setRoomPhotos] = useState<Record<string, string>>(
+    (initialData.rooms || []).reduce((acc, room) => ({
+      ...acc,
+      ...(room.photoUrl ? { [room.id]: room.photoUrl } : {})
+    }), {})
+  )
+  const [roomNames, setRoomNames] = useState<Record<string, string>>(
+    (initialData.rooms || []).reduce((acc, room) => ({
+      ...acc,
+      [room.id]: room.name
+    }), {})
+  )
+  const [deletedRooms, setDeletedRooms] = useState<Set<string>>(new Set())
   
-  const rooms = initialData.rooms || []
+  const rooms = (initialData.rooms || []).filter(room => !deletedRooms.has(room.id))
 
   const handlePhotoUpload = (roomId: string, event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
@@ -40,10 +52,26 @@ export default function PhotoTourStep({ onComplete, onBack, onSkip, initialData 
     }
   }
 
+  const handleDeleteRoom = (roomId: string) => {
+    setDeletedRooms(prev => new Set([...prev, roomId]))
+    // Clean up photos and names for deleted room
+    setRoomPhotos(prev => {
+      const updated = { ...prev }
+      delete updated[roomId]
+      return updated
+    })
+    setRoomNames(prev => {
+      const updated = { ...prev }
+      delete updated[roomId]
+      return updated
+    })
+  }
+
   const handleContinue = () => {
-    // Update room data with photo status
+    // Update room data with photo status and custom names
     const updatedRooms = rooms.map(room => ({
       ...room,
+      name: roomNames[room.id] || room.name,
       hasPhoto: !!roomPhotos[room.id],
       photoUrl: roomPhotos[room.id]
     }))
@@ -65,9 +93,6 @@ export default function PhotoTourStep({ onComplete, onBack, onSkip, initialData 
           <h2 className="text-2xl font-bold text-gray-900 mb-2">
             Let&apos;s take a photo tour of your home
           </h2>
-          <p className="text-gray-600 mb-4">
-            Add photos to each room for easy visual navigation and organization
-          </p>
           
           {/* Progress */}
           <div className="bg-blue-50 rounded-lg p-4 mb-6">
@@ -89,7 +114,7 @@ export default function PhotoTourStep({ onComplete, onBack, onSkip, initialData 
         {/* Rooms Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
           {rooms.map((room) => (
-            <div key={room.id} className="bg-white border-2 border-gray-200 rounded-lg overflow-hidden hover:border-blue-300 transition-colors">
+            <div key={room.id} className="bg-white border-2 border-gray-200 rounded-lg overflow-hidden hover:border-blue-300 transition-colors relative">
               {/* Photo Area */}
               <div 
                 className="aspect-video bg-gray-50 relative"
@@ -110,54 +135,58 @@ export default function PhotoTourStep({ onComplete, onBack, onSkip, initialData 
                   />
                 )}
                 
-                {/* Debug info */}
+                {/* Change Photo button overlaid on photo */}
                 {roomPhotos[room.id] && (
-                  <div className="absolute bottom-2 left-2 bg-black bg-opacity-50 text-white text-xs px-2 py-1 rounded">
-                    Photo loaded
-                  </div>
+                  <label className="absolute bottom-2 left-2 flex items-center gap-1 px-2 py-1 bg-blue-50 text-blue-700 rounded cursor-pointer hover:bg-blue-100 transition-colors text-xs">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => handlePhotoUpload(room.id, e)}
+                      className="hidden"
+                    />
+                    Change Photo
+                  </label>
                 )}
                 {!roomPhotos[room.id] && (
                   <div className="w-full h-full flex flex-col items-center justify-center">
-                    <Camera className="w-8 h-8 text-gray-400 mb-3" />
-                    <label className="px-4 py-2 bg-blue-600 text-white rounded-md cursor-pointer hover:bg-blue-700 transition-colors text-sm">
+                    <label className="flex items-center justify-center gap-2 px-3 py-2 bg-blue-50 text-blue-700 rounded-md cursor-pointer hover:bg-blue-100 transition-colors">
                       <input
                         type="file"
                         accept="image/*"
                         onChange={(e) => handlePhotoUpload(room.id, e)}
                         className="hidden"
                       />
-                      Add Photo
+                      <Camera className="w-4 h-4" />
+                      <span className="text-sm font-medium">
+                        Add Photo
+                      </span>
                     </label>
                   </div>
                 )}
 
-                {/* Status Badge */}
-                {roomPhotos[room.id] && (
-                  <div className="absolute top-2 right-2">
-                    <CheckCircle2 className="w-6 h-6 text-green-500 bg-white rounded-full" />
-                  </div>
-                )}
               </div>
+
+              {/* Delete button */}
+              <button
+                onClick={() => handleDeleteRoom(room.id)}
+                className="absolute top-2 right-2 w-8 h-8 text-gray-400 hover:text-red-500 transition-colors flex items-center justify-center"
+                title="Delete room"
+              >
+                <Trash2 className="w-4 h-4" />
+              </button>
 
               {/* Room Info */}
               <div className="p-4">
-                <h3 className="font-semibold text-gray-900 mb-1">{room.name}</h3>
-                <p className="text-sm text-gray-500 capitalize">
-                  {room.type.replace('_', ' ')}
-                </p>
-                
-                <label className="mt-3 flex items-center justify-center gap-2 px-3 py-2 bg-blue-50 text-blue-700 rounded-md cursor-pointer hover:bg-blue-100 transition-colors">
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={(e) => handlePhotoUpload(room.id, e)}
-                    className="hidden"
-                  />
-                  <Camera className="w-4 h-4" />
-                  <span className="text-sm font-medium">
-                    {roomPhotos[room.id] ? 'Change Photo' : 'Add Photo'}
-                  </span>
-                </label>
+                <input
+                  type="text"
+                  value={roomNames[room.id] || room.name}
+                  onChange={(e) => setRoomNames(prev => ({
+                    ...prev,
+                    [room.id]: e.target.value
+                  }))}
+                  className="w-full font-semibold text-gray-900 bg-transparent border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white rounded px-2 py-1"
+                  placeholder={room.name}
+                />
               </div>
             </div>
           ))}
