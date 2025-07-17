@@ -13,7 +13,7 @@ export interface SupabaseConfig {
 export const getSupabaseConfig = (): SupabaseConfig => {
   const branch = getBranch();
   
-  console.log(`Current branch: ${branch}`); // For debugging
+  // console.log(`Current branch: ${branch}`); // Commented to avoid hydration issues
   
   if (branch === 'main') {
     // Production environment
