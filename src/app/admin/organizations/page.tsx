@@ -23,7 +23,7 @@ export default async function AdminOrganizationsPage() {
   }
 
   // Get all organizations with member counts and analytics
-  const { data: organizations } = await supabase
+  const { data: organizations, error } = await supabase
     .from('organizations')
     .select(`
       *,
@@ -35,14 +35,12 @@ export default async function AdminOrganizationsPage() {
           last_name,
           email
         )
-      ),
-      created_by_profile:user_profiles!organizations_created_by_fkey (
-        email,
-        first_name,
-        last_name
       )
     `)
     .order('created_at', { ascending: false })
+
+  console.log('Organizations query error:', error)
+  console.log('Organizations data:', organizations)
 
   // Get organization analytics for each org
   const orgIds = organizations?.map(org => org.id) || []
@@ -61,16 +59,31 @@ export default async function AdminOrganizationsPage() {
     return acc
   }, {} as Record<string, any[]>) || {}
 
-  const enrichedOrganizations = organizations?.map(org => ({
-    ...org,
-    memberCount: org.organization_members?.length || 0,
-    adminCount: org.organization_members?.filter((m: any) => m.role === 'admin').length || 0,
-    latestAnalytics: analyticsMap[org.id]?.[0] || null,
-    tags: org.tags || null,
-    ownerEmail: org.created_by_profile?.email || null,
-    ownerName: org.created_by_profile ? `${org.created_by_profile.first_name} ${org.created_by_profile.last_name}`.trim() : null,
-    adminEmails: org.organization_members?.filter((m: any) => m.role === 'admin').map((m: any) => m.user_profiles?.email).filter(Boolean) || []
-  })) || []
+  // Get creator profiles separately
+  const creatorIds = organizations?.map(org => org.created_by).filter(Boolean) || []
+  const { data: creatorProfiles } = await supabase
+    .from('user_profiles')
+    .select('id, email, first_name, last_name')
+    .in('id', creatorIds)
+
+  const creatorProfilesMap = creatorProfiles?.reduce((acc, profile) => {
+    acc[profile.id] = profile
+    return acc
+  }, {} as Record<string, any>) || {}
+
+  const enrichedOrganizations = organizations?.map(org => {
+    const creatorProfile = org.created_by ? creatorProfilesMap[org.created_by] : null
+    return {
+      ...org,
+      memberCount: org.organization_members?.length || 0,
+      adminCount: org.organization_members?.filter((m: any) => m.role === 'admin').length || 0,
+      latestAnalytics: analyticsMap[org.id]?.[0] || null,
+      tags: org.tags || null,
+      ownerEmail: creatorProfile?.email || null,
+      ownerName: creatorProfile ? `${creatorProfile.first_name} ${creatorProfile.last_name}`.trim() : null,
+      adminEmails: org.organization_members?.filter((m: any) => m.role === 'admin').map((m: any) => m.user_profiles?.email).filter(Boolean) || []
+    }
+  }) || []
 
   return (
     <AdminOrganizations 
