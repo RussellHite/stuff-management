@@ -122,20 +122,22 @@ export default function PhotoTourStep({ onComplete, onBack, onSkip, initialData 
                   </div>
                 )}
                 
-                {/* Upload Overlay */}
-                <label className="absolute inset-0 cursor-pointer group">
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={(e) => handlePhotoUpload(room.id, e)}
-                    className="hidden"
-                  />
-                  <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all flex items-center justify-center">
-                    <div className="opacity-0 group-hover:opacity-100 transition-opacity">
-                      <Upload className="w-6 h-6 text-white" />
+                {/* Upload Overlay - only show when no photo */}
+                {!roomPhotos[room.id] && (
+                  <label className="absolute inset-0 cursor-pointer group">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => handlePhotoUpload(room.id, e)}
+                      className="hidden"
+                    />
+                    <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all flex items-center justify-center">
+                      <div className="opacity-0 group-hover:opacity-100 transition-opacity">
+                        <Upload className="w-6 h-6 text-white" />
+                      </div>
                     </div>
-                  </div>
-                </label>
+                  </label>
+                )}
 
                 {/* Status Badge */}
                 {roomPhotos[room.id] && (
