@@ -16,12 +16,15 @@ export default function RoomConfigStep({ onComplete, onBack, initialData }: Room
   const [halfBathrooms, setHalfBathrooms] = useState(1)
   const [selectedRooms, setSelectedRooms] = useState<string[]>(['kitchen', 'living_room'])
   const [customRoom, setCustomRoom] = useState('')
+  const [customRooms, setCustomRooms] = useState<string[]>([])
 
-  const additionalRooms = [
+  const defaultAdditionalRooms = [
     'dining_room', 'basement', 'garage', 'mudroom', 'pantry', 
     'office', 'laundry_room', 'family_room', 'den', 'attic',
     'sunroom', 'porch', 'playroom'
   ]
+  
+  const additionalRooms = [...defaultAdditionalRooms, ...customRooms]
 
   const formatRoomName = (room: string) => {
     return room.split('_').map(word => 
@@ -38,9 +41,21 @@ export default function RoomConfigStep({ onComplete, onBack, initialData }: Room
   }
 
   const handleAddCustomRoom = () => {
-    if (customRoom.trim() && !selectedRooms.includes(customRoom.trim().toLowerCase())) {
-      setSelectedRooms(prev => [...prev, customRoom.trim().toLowerCase()])
-      setCustomRoom('')
+    if (customRoom.trim()) {
+      const formattedRoom = customRoom.trim().toLowerCase().replace(/\s+/g, '_')
+      
+      // Check if room already exists in any list
+      if (!additionalRooms.includes(formattedRoom) && !selectedRooms.includes(formattedRoom)) {
+        // Add to custom rooms list
+        setCustomRooms(prev => [...prev, formattedRoom])
+        // Add to selected rooms
+        setSelectedRooms(prev => [...prev, formattedRoom])
+        setCustomRoom('')
+      } else if (!selectedRooms.includes(formattedRoom)) {
+        // Room exists but not selected, just select it
+        setSelectedRooms(prev => [...prev, formattedRoom])
+        setCustomRoom('')
+      }
     }
   }
 
@@ -176,19 +191,27 @@ export default function RoomConfigStep({ onComplete, onBack, initialData }: Room
             <p className="text-sm text-gray-600 mb-4">Kitchen and Living Room are included by default</p>
             
             <div className="flex flex-wrap gap-3 mb-6">
-              {additionalRooms.map(room => (
-                <button
-                  key={room}
-                  onClick={() => handleRoomToggle(room)}
-                  className={`px-4 py-3 rounded-lg border-2 transition-all text-sm font-medium whitespace-nowrap ${
-                    selectedRooms.includes(room)
-                      ? 'border-blue-500 bg-blue-50 text-blue-700'
-                      : 'border-gray-300 bg-white text-gray-700 hover:border-gray-400'
-                  }`}
-                >
-                  {formatRoomName(room)}
-                </button>
-              ))}
+              {additionalRooms.map(room => {
+                const isCustom = customRooms.includes(room)
+                const isSelected = selectedRooms.includes(room)
+                
+                return (
+                  <button
+                    key={room}
+                    onClick={() => handleRoomToggle(room)}
+                    className={`px-4 py-3 rounded-lg border-2 transition-all text-sm font-medium whitespace-nowrap ${
+                      isSelected
+                        ? 'border-blue-500 bg-blue-50 text-blue-700'
+                        : 'border-gray-300 bg-white text-gray-700 hover:border-gray-400'
+                    }`}
+                  >
+                    {formatRoomName(room)}
+                    {isCustom && (
+                      <span className="ml-2 text-xs text-purple-600">✨</span>
+                    )}
+                  </button>
+                )
+              })}
             </div>
 
             {/* Custom Room Input */}
@@ -196,6 +219,11 @@ export default function RoomConfigStep({ onComplete, onBack, initialData }: Room
               <p className="text-sm font-medium text-gray-900 mb-3">
                 Any other rooms you don&apos;t see here?
               </p>
+              {customRooms.length > 0 && (
+                <p className="text-xs text-purple-600 mb-2">
+                  ✨ Custom rooms added: {customRooms.map(r => formatRoomName(r)).join(', ')}
+                </p>
+              )}
               <div className="flex gap-2">
                 <input
                   type="text"
