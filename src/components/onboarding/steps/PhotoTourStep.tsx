@@ -82,14 +82,15 @@ export default function PhotoTourStep({ onComplete, onBack, onSkip, initialData 
           {rooms.map((room) => (
             <div key={room.id} className="bg-white border-2 border-gray-200 rounded-lg overflow-hidden hover:border-blue-300 transition-colors">
               {/* Photo Area */}
-              <div className="aspect-video bg-gray-50 relative">
-                {roomPhotos[room.id] ? (
-                  <img 
-                    src={roomPhotos[room.id]} 
-                    alt={room.name}
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
+              <div 
+                className="aspect-video bg-gray-50 relative"
+                style={{
+                  backgroundImage: roomPhotos[room.id] ? `url(${roomPhotos[room.id]})` : 'none',
+                  backgroundSize: 'cover',
+                  backgroundPosition: 'center'
+                }}
+              >
+                {!roomPhotos[room.id] && (
                   <div className="w-full h-full flex items-center justify-center">
                     <Camera className="w-8 h-8 text-gray-400" />
                   </div>
