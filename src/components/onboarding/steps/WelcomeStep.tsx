@@ -51,8 +51,8 @@ export default function WelcomeStep({ onComplete, onSkip, initialData }: Welcome
           .insert([{
             organization_id: household.id,
             user_id: user.id,
-            role: 'admin',
-            status: 'active'
+            role: 'admin'
+            // status: 'active' - removed until column exists
           }])
 
         if (memberError) throw memberError
