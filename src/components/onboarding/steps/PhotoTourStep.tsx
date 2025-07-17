@@ -19,13 +19,22 @@ export default function PhotoTourStep({ onComplete, onBack, onSkip, initialData 
   const handlePhotoUpload = (roomId: string, event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
     if (file) {
+      console.log('File selected:', file.name, file.type) // Debug log
       const reader = new FileReader()
       reader.onload = (e) => {
         const result = e.target?.result as string
-        setRoomPhotos(prev => ({
-          ...prev,
-          [roomId]: result
-        }))
+        console.log('File read result:', result.substring(0, 50) + '...') // Debug log
+        setRoomPhotos(prev => {
+          const updated = {
+            ...prev,
+            [roomId]: result
+          }
+          console.log('Updated room photos:', updated) // Debug log
+          return updated
+        })
+      }
+      reader.onerror = (e) => {
+        console.error('File read error:', e) // Debug log
       }
       reader.readAsDataURL(file)
     }
@@ -85,11 +94,28 @@ export default function PhotoTourStep({ onComplete, onBack, onSkip, initialData 
               <div 
                 className="aspect-video bg-gray-50 relative"
                 style={{
-                  backgroundImage: roomPhotos[room.id] ? `url(${roomPhotos[room.id]})` : 'none',
+                  backgroundImage: roomPhotos[room.id] ? `url("${roomPhotos[room.id]}")` : 'none',
                   backgroundSize: 'cover',
                   backgroundPosition: 'center'
                 }}
               >
+                {/* Fallback img element for debugging */}
+                {roomPhotos[room.id] && (
+                  <img 
+                    src={roomPhotos[room.id]} 
+                    alt={room.name}
+                    className="w-full h-full object-cover opacity-0"
+                    onLoad={() => console.log('Image loaded successfully for', room.name)}
+                    onError={() => console.error('Image failed to load for', room.name)}
+                  />
+                )}
+                
+                {/* Debug info */}
+                {roomPhotos[room.id] && (
+                  <div className="absolute bottom-2 left-2 bg-black bg-opacity-50 text-white text-xs px-2 py-1 rounded">
+                    Photo loaded
+                  </div>
+                )}
                 {!roomPhotos[room.id] && (
                   <div className="w-full h-full flex items-center justify-center">
                     <Camera className="w-8 h-8 text-gray-400" />
