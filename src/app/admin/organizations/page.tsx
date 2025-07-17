@@ -29,26 +29,24 @@ export default async function AdminOrganizationsPage() {
     .select('*')
     .order('created_at', { ascending: false })
 
-  console.log('Organizations query error:', error)
-  console.log('Organizations data:', organizations)
-  console.log('Organizations count:', organizations?.length)
-
-  // Get organization members separately 
+  // Get organization members separately with explicit relationship
   const { data: members, error: membersError } = await supabase
     .from('organization_members')
     .select(`
       id,
       organization_id,
       role,
-      user_profiles (
+      user_id,
+      user_profiles!organization_members_user_id_fkey (
         first_name,
         last_name,
         email
       )
     `)
 
-  console.log('Members query error:', membersError)
-  console.log('Members data:', members)
+  // Log errors to server console only
+  if (error) console.error('Organizations query error:', error)
+  if (membersError) console.error('Members query error:', membersError)
 
   // Group members by organization
   const membersByOrg = members?.reduce((acc, member) => {
@@ -95,7 +93,10 @@ export default async function AdminOrganizationsPage() {
     }
   }) || []
 
-  console.log('Enriched organizations:', enrichedOrganizations)
+  // Optional: Log enriched organizations count for debugging
+  if (enrichedOrganizations.length === 0) {
+    console.warn('No enriched organizations found')
+  }
 
   return (
     <AdminLayout 

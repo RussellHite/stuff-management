@@ -1,14 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createServerComponentClient } from '@supabase/auth-helpers-nextjs'
-import { cookies } from 'next/headers'
-import { Database } from '@/types/database'
+import { createClient } from '@/lib/supabase/server'
 
 export async function DELETE(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
-    const supabase = createServerComponentClient<Database>({ cookies })
+    const supabase = await createClient()
     
     // Check if user is authenticated and admin
     const { data: { user } } = await supabase.auth.getUser()
