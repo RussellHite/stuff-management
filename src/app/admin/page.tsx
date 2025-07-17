@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import AdminDashboard from '@/components/admin/AdminDashboard'
+import AdminLayout from '@/components/admin/AdminLayout'
 
 export default async function AdminPage() {
   const supabase = await createClient()
@@ -84,15 +85,24 @@ export default async function AdminPage() {
   }
 
   return (
-    <AdminDashboard
+    <AdminLayout 
       adminUser={{
         id: user.id,
         email: user.email || '',
         name: `${userProfile.first_name || ''} ${userProfile.last_name || ''}`.trim() || 'Admin'
       }}
-      stats={stats}
-      recentOrganizations={recentOrganizations || []}
-      topOrganizations={topOrganizations || []}
-    />
+      currentPage="Overview"
+    >
+      <AdminDashboard
+        adminUser={{
+          id: user.id,
+          email: user.email || '',
+          name: `${userProfile.first_name || ''} ${userProfile.last_name || ''}`.trim() || 'Admin'
+        }}
+        stats={stats}
+        recentOrganizations={recentOrganizations || []}
+        topOrganizations={topOrganizations || []}
+      />
+    </AdminLayout>
   )
 }

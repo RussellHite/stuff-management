@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import AdminOrganizations from '@/components/admin/AdminOrganizations'
+import AdminLayout from '@/components/admin/AdminLayout'
 
 export default async function AdminOrganizationsPage() {
   const supabase = await createClient()
@@ -97,13 +98,22 @@ export default async function AdminOrganizationsPage() {
   console.log('Enriched organizations:', enrichedOrganizations)
 
   return (
-    <AdminOrganizations 
-      organizations={enrichedOrganizations}
+    <AdminLayout 
       adminUser={{
         id: user.id,
         email: user.email || '',
         name: 'Admin'
       }}
-    />
+      currentPage="Organizations"
+    >
+      <AdminOrganizations 
+        organizations={enrichedOrganizations}
+        adminUser={{
+          id: user.id,
+          email: user.email || '',
+          name: 'Admin'
+        }}
+      />
+    </AdminLayout>
   )
 }

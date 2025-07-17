@@ -219,27 +219,8 @@ export default function AdminOrganizations({ organizations, adminUser }: AdminOr
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white border-b border-gray-200 px-6 py-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-4">
-            <Link href="/admin" className="flex items-center space-x-2 text-gray-600 hover:text-gray-900">
-              <Shield className="w-6 h-6" />
-              <span className="font-medium">Admin</span>
-            </Link>
-            <span className="text-gray-400">/</span>
-            <h1 className="text-2xl font-bold text-gray-900">Organizations</h1>
-          </div>
-          
-          <div className="text-right">
-            <p className="text-sm font-medium text-gray-900">{adminUser.name}</p>
-            <p className="text-xs text-gray-500">{adminUser.email}</p>
-          </div>
-        </div>
-      </header>
-
-      {/* Controls */}
+    <div>
+      {/* Search and Filter Controls */}
       <div className="bg-white border-b border-gray-200 px-6 py-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
@@ -315,7 +296,7 @@ export default function AdminOrganizations({ organizations, adminUser }: AdminOr
       </div>
 
       {/* Main Content */}
-      <main className="p-6">
+      <div className="p-6">
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
           <div className="bg-white rounded-lg border shadow-sm p-6">
@@ -590,7 +571,7 @@ export default function AdminOrganizations({ organizations, adminUser }: AdminOr
             </p>
           </div>
         )}
-      </main>
+      </div>
 
       {/* Delete Confirmation Modal */}
       {showDeleteConfirm && (
