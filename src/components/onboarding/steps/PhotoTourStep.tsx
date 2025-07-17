@@ -99,12 +99,12 @@ export default function PhotoTourStep({ onComplete, onBack, onSkip, initialData 
                   backgroundPosition: 'center'
                 }}
               >
-                {/* Fallback img element for debugging */}
+                {/* Use img element instead of background for reliability */}
                 {roomPhotos[room.id] && (
                   <img 
                     src={roomPhotos[room.id]} 
                     alt={room.name}
-                    className="w-full h-full object-cover opacity-0"
+                    className="w-full h-full object-cover"
                     onLoad={() => console.log('Image loaded successfully for', room.name)}
                     onError={() => console.error('Image failed to load for', room.name)}
                   />
