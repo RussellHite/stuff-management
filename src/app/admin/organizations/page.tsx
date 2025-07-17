@@ -22,27 +22,41 @@ export default async function AdminOrganizationsPage() {
     redirect('/dashboard')
   }
 
-  // Get all organizations with member counts and analytics
+  // Get all organizations first (simple query)
   const { data: organizations, error } = await supabase
     .from('organizations')
-    .select(`
-      *,
-      organization_members (
-        id,
-        role,
-        user_profiles (
-          first_name,
-          last_name,
-          email
-        )
-      )
-    `)
+    .select('*')
     .order('created_at', { ascending: false })
 
   console.log('Organizations query error:', error)
   console.log('Organizations data:', organizations)
   console.log('Organizations count:', organizations?.length)
-  console.log('Enriched organizations:', enrichedOrganizations)
+
+  // Get organization members separately 
+  const { data: members, error: membersError } = await supabase
+    .from('organization_members')
+    .select(`
+      id,
+      organization_id,
+      role,
+      user_profiles (
+        first_name,
+        last_name,
+        email
+      )
+    `)
+
+  console.log('Members query error:', membersError)
+  console.log('Members data:', members)
+
+  // Group members by organization
+  const membersByOrg = members?.reduce((acc, member) => {
+    if (!acc[member.organization_id]) {
+      acc[member.organization_id] = []
+    }
+    acc[member.organization_id].push(member)
+    return acc
+  }, {} as Record<string, any[]>) || {}
 
   // Get organization analytics for each org
   const orgIds = organizations?.map(org => org.id) || []
@@ -62,14 +76,15 @@ export default async function AdminOrganizationsPage() {
   }, {} as Record<string, any[]>) || {}
 
   const enrichedOrganizations = organizations?.map(org => {
-    // Get the first admin as the "owner" since there's no created_by field
-    const adminMembers = org.organization_members?.filter((m: any) => m.role === 'admin') || []
+    // Get members for this organization
+    const orgMembers = membersByOrg[org.id] || []
+    const adminMembers = orgMembers.filter((m: any) => m.role === 'admin')
     const ownerMember = adminMembers[0] // First admin is considered owner
     
     return {
       ...org,
       type: 'household', // Default type since we don't have organization_type
-      memberCount: org.organization_members?.length || 0,
+      memberCount: orgMembers.length,
       adminCount: adminMembers.length,
       latestAnalytics: analyticsMap[org.id]?.[0] || null,
       tags: org.tags || null,
@@ -78,6 +93,8 @@ export default async function AdminOrganizationsPage() {
       adminEmails: adminMembers.map((m: any) => m.user_profiles?.email).filter(Boolean) || []
     }
   }) || []
+
+  console.log('Enriched organizations:', enrichedOrganizations)
 
   return (
     <AdminOrganizations 
