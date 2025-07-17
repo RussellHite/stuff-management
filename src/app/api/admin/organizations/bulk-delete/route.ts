@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+// Bulk delete API for admin organizations
 
 export async function POST(request: NextRequest) {
   try {
