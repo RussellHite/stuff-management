@@ -41,6 +41,8 @@ export default async function AdminOrganizationsPage() {
 
   console.log('Organizations query error:', error)
   console.log('Organizations data:', organizations)
+  console.log('Organizations count:', organizations?.length)
+  console.log('Enriched organizations:', enrichedOrganizations)
 
   // Get organization analytics for each org
   const orgIds = organizations?.map(org => org.id) || []
@@ -66,6 +68,7 @@ export default async function AdminOrganizationsPage() {
     
     return {
       ...org,
+      type: 'household', // Default type since we don't have organization_type
       memberCount: org.organization_members?.length || 0,
       adminCount: adminMembers.length,
       latestAnalytics: analyticsMap[org.id]?.[0] || null,
