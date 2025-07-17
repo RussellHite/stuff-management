@@ -117,26 +117,18 @@ export default function PhotoTourStep({ onComplete, onBack, onSkip, initialData 
                   </div>
                 )}
                 {!roomPhotos[room.id] && (
-                  <div className="w-full h-full flex items-center justify-center">
-                    <Camera className="w-8 h-8 text-gray-400" />
+                  <div className="w-full h-full flex flex-col items-center justify-center">
+                    <Camera className="w-8 h-8 text-gray-400 mb-3" />
+                    <label className="px-4 py-2 bg-blue-600 text-white rounded-md cursor-pointer hover:bg-blue-700 transition-colors text-sm">
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => handlePhotoUpload(room.id, e)}
+                        className="hidden"
+                      />
+                      Add Photo
+                    </label>
                   </div>
-                )}
-                
-                {/* Upload Overlay - only show when no photo */}
-                {!roomPhotos[room.id] && (
-                  <label className="absolute inset-0 cursor-pointer group">
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={(e) => handlePhotoUpload(room.id, e)}
-                      className="hidden"
-                    />
-                    <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all flex items-center justify-center">
-                      <div className="opacity-0 group-hover:opacity-100 transition-opacity">
-                        <Upload className="w-6 h-6 text-white" />
-                      </div>
-                    </div>
-                  </label>
                 )}
 
                 {/* Status Badge */}
