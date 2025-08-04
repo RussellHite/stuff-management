@@ -4,8 +4,6 @@ import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase/client'
 import { 
   Plus, 
-  Camera, 
-  Upload, 
   X, 
   Calendar, 
   User,
@@ -20,7 +18,6 @@ import {
 } from 'lucide-react'
 import { toast } from 'react-hot-toast'
 import { formatDistanceToNow, format } from 'date-fns'
-import { useDropzone } from 'react-dropzone'
 
 interface ConditionLog {
   id: string
@@ -67,7 +64,6 @@ export default function ConditionTracker({
   const [viewingPhotos, setViewingPhotos] = useState<string[]>([])
   const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0)
   const [loading, setLoading] = useState(true)
-  const [uploadingPhotos, setUploadingPhotos] = useState<File[]>([])
 
   const conditions = [
     { value: 'excellent', label: 'Excellent', color: 'bg-green-100 text-green-800 border-green-200', icon: '✨' },
@@ -120,64 +116,7 @@ export default function ConditionTracker({
     }
   }
 
-  const onDrop = (acceptedFiles: File[]) => {
-    setUploadingPhotos(prev => [...prev, ...acceptedFiles])
-  }
 
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({
-    onDrop,
-    accept: {
-      'image/*': ['.png', '.jpg', '.jpeg', '.gif', '.webp']
-    },
-    maxSize: 10 * 1024 * 1024, // 10MB
-    multiple: true
-  })
-
-  const removeUploadingPhoto = (index: number) => {
-    setUploadingPhotos(prev => prev.filter((_, i) => i !== index))
-  }
-
-  const uploadPhotosToStorage = async (files: File[], logId: string) => {
-    const uploadedPhotos = []
-    
-    for (const file of files) {
-      const fileExt = file.name.split('.').pop()
-      const fileName = `${logId}_${Date.now()}.${fileExt}`
-      const filePath = `${householdId}/condition-logs/${fileName}`
-      
-      const { error: uploadError } = await supabase.storage
-        .from('household-photos')
-        .upload(filePath, file)
-      
-      if (uploadError) {
-        console.error('Error uploading photo:', uploadError)
-        continue
-      }
-      
-      const { data: { publicUrl } } = supabase.storage
-        .from('household-photos')
-        .getPublicUrl(filePath)
-      
-      // Save photo record to database
-      const { error: dbError } = await supabase
-        .from('condition_log_photos')
-        .insert({
-          condition_log_id: logId,
-          organization_id: householdId,
-          uploaded_by: userId,
-          photo_url: publicUrl,
-          photo_type: 'general',
-          file_size: file.size,
-          mime_type: file.type
-        })
-      
-      if (!dbError) {
-        uploadedPhotos.push(publicUrl)
-      }
-    }
-    
-    return uploadedPhotos
-  }
 
   const addConditionLog = async (formData: FormData) => {
     try {
@@ -200,15 +139,9 @@ export default function ConditionTracker({
 
       if (error) throw error
       
-      // Upload photos if any
-      if (uploadingPhotos.length > 0) {
-        await uploadPhotosToStorage(uploadingPhotos, data.id)
-      }
-      
       await fetchConditionLogs()
       onConditionUpdated()
       setIsAddingLog(false)
-      setUploadingPhotos([])
       toast.success('Condition log added successfully')
       
       // Log activity
@@ -362,60 +295,12 @@ export default function ConditionTracker({
               />
             </div>
             
-            {/* Photo Upload */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Photos
-              </label>
-              <div
-                {...getRootProps()}
-                className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors ${
-                  isDragActive ? 'border-blue-500 bg-blue-50' : 'border-gray-300 hover:border-gray-400'
-                }`}
-              >
-                <input {...getInputProps()} />
-                <Camera className="h-8 w-8 mx-auto mb-2 text-gray-400" />
-                <p className="text-sm text-gray-600">
-                  {isDragActive ? 'Drop photos here...' : 'Drag photos here or click to select'}
-                </p>
-                <p className="text-xs text-gray-500 mt-1">
-                  PNG, JPG, GIF up to 10MB each
-                </p>
-              </div>
-              
-              {uploadingPhotos.length > 0 && (
-                <div className="mt-4">
-                  <p className="text-sm font-medium text-gray-700 mb-2">
-                    Photos to upload ({uploadingPhotos.length})
-                  </p>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-                    {uploadingPhotos.map((file, index) => (
-                      <div key={index} className="relative">
-                        <img
-                          src={URL.createObjectURL(file)}
-                          alt={`Upload ${index + 1}`}
-                          className="w-full h-20 object-cover rounded-md border"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => removeUploadingPhoto(index)}
-                          className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs hover:bg-red-600"
-                        >
-                          ×
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
             
             <div className="flex justify-end space-x-3">
               <button
                 type="button"
                 onClick={() => {
                   setIsAddingLog(false)
-                  setUploadingPhotos([])
                 }}
                 className="px-4 py-2 text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200"
               >
