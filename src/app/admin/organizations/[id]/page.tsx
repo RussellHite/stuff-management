@@ -97,7 +97,7 @@ export default async function OrganizationDetailPage({ params }: OrganizationDet
                     'bg-gray-100 text-gray-800'
                   }`}
                 >
-                  {value}
+                  {String(value)}
                 </span>
               ))}
               <span className={`px-2 py-1 text-xs font-medium rounded-full ${
@@ -112,9 +112,9 @@ export default async function OrganizationDetailPage({ params }: OrganizationDet
           {ownerMember?.user_profiles && (
             <div className="flex items-center text-gray-600">
               <Mail className="w-4 h-4 mr-1" />
-              <span className="text-sm">{ownerMember.user_profiles.email}</span>
+              <span className="text-sm">{(ownerMember.user_profiles as any).email}</span>
               <span className="mx-2">•</span>
-              <span className="text-sm">{ownerMember.user_profiles.first_name} {ownerMember.user_profiles.last_name}</span>
+              <span className="text-sm">{(ownerMember.user_profiles as any).first_name} {(ownerMember.user_profiles as any).last_name}</span>
             </div>
           )}
         </div>
@@ -215,7 +215,7 @@ export default async function OrganizationDetailPage({ params }: OrganizationDet
                         'bg-gray-100 text-gray-800'
                       }`}
                     >
-                      {value}
+                      {String(value)}
                     </span>
                   ))}
                 </div>
@@ -234,9 +234,9 @@ export default async function OrganizationDetailPage({ params }: OrganizationDet
                     </div>
                     <div>
                       <p className="text-sm font-medium text-gray-900">
-                        {member.user_profiles?.first_name} {member.user_profiles?.last_name}
+                        {(member.user_profiles as any)?.first_name} {(member.user_profiles as any)?.last_name}
                       </p>
-                      <p className="text-xs text-gray-500">{member.user_profiles?.email}</p>
+                      <p className="text-xs text-gray-500">{(member.user_profiles as any)?.email}</p>
                     </div>
                   </div>
                   <span className={`px-2 py-1 text-xs font-medium rounded-full ${

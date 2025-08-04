@@ -3,9 +3,10 @@ import { createClient } from '@/lib/supabase/server'
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string; category: string } }
+  { params }: { params: Promise<{ id: string; category: string }> }
 ) {
   try {
+    const { id, category } = await params
     const supabase = await createClient()
     
     // Check if user is authenticated and admin
@@ -28,18 +29,18 @@ export async function DELETE(
     const { data: org } = await supabase
       .from('organizations')
       .select('tags')
-      .eq('id', params.id)
+      .eq('id', id)
       .single()
 
     const currentTags = org?.tags || {}
     const updatedTags = { ...currentTags }
-    delete updatedTags[params.category]
+    delete updatedTags[category]
 
     // Update organization with removed tag
     const { error } = await supabase
       .from('organizations')
       .update({ tags: updatedTags })
-      .eq('id', params.id)
+      .eq('id', id)
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 })

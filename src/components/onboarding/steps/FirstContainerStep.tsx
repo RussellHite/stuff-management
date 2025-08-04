@@ -87,7 +87,11 @@ export default function FirstContainerStep({ onComplete, onBack, onSkip, initial
 
   const handleContinue = () => {
     onComplete({
-      firstContainerLocation: kitchenLocation
+      firstContainerLocation: kitchenLocation ? {
+        id: kitchenLocation.id,
+        room_name: kitchenLocation.room_name,
+        description: kitchenLocation.description || undefined
+      } : undefined
     })
   }
 

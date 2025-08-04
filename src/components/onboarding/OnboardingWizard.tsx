@@ -21,6 +21,11 @@ export interface OnboardingData {
     photoUrl?: string
     customName?: string
   }>
+  firstContainerLocation?: {
+    id: string
+    room_name: string
+    description?: string
+  }
   firstContainer?: {
     id: string
     name: string

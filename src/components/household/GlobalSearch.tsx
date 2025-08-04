@@ -143,13 +143,13 @@ export default function GlobalSearch({ householdId, onItemSelect }: GlobalSearch
           type: 'consumable' as const,
           location: Array.isArray(item.household_locations) 
             ? item.household_locations[0]?.room_name || 'No Location'
-            : item.household_locations?.room_name || 'No Location',
+            : (item.household_locations as any)?.room_name || 'No Location',
           description: item.description,
           current_quantity: item.current_quantity,
           reorder_threshold: item.reorder_threshold,
           room_name: Array.isArray(item.household_locations) 
             ? item.household_locations[0]?.room_name || 'No Location'
-            : item.household_locations?.room_name || 'No Location'
+            : (item.household_locations as any)?.room_name || 'No Location'
         })))
       }
 
@@ -161,12 +161,12 @@ export default function GlobalSearch({ householdId, onItemSelect }: GlobalSearch
           type: 'non-consumable' as const,
           location: Array.isArray(item.household_locations) 
             ? item.household_locations[0]?.room_name || 'No Location'
-            : item.household_locations?.room_name || 'No Location',
+            : (item.household_locations as any)?.room_name || 'No Location',
           description: item.description,
           current_condition: item.current_condition,
           room_name: Array.isArray(item.household_locations) 
             ? item.household_locations[0]?.room_name || 'No Location'
-            : item.household_locations?.room_name || 'No Location'
+            : (item.household_locations as any)?.room_name || 'No Location'
         })))
       }
 

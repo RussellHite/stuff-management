@@ -3,9 +3,10 @@ import { createClient } from '@/lib/supabase/server'
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params
     const supabase = await createClient()
     
     // Check if user is authenticated and admin
@@ -34,7 +35,7 @@ export async function POST(
     const { data: org } = await supabase
       .from('organizations')
       .select('tags')
-      .eq('id', params.id)
+      .eq('id', id)
       .single()
 
     const currentTags = org?.tags || {}
@@ -44,7 +45,7 @@ export async function POST(
     const { error } = await supabase
       .from('organizations')
       .update({ tags: updatedTags })
-      .eq('id', params.id)
+      .eq('id', id)
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 })

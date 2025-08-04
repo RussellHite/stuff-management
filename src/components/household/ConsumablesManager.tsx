@@ -639,8 +639,7 @@ function ConsumableCard({
   canEdit, 
   onEdit, 
   onDelete, 
-  onQuantityChange,
-  onShowQRCode 
+  onQuantityChange
 }: {
   item: Consumable
   canEdit: boolean
