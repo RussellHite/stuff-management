@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+import { createClient, createAdminClient } from '@/lib/supabase/server'
 // Bulk delete API for admin organizations
 
 export async function POST(request: NextRequest) {
@@ -50,13 +50,17 @@ export async function POST(request: NextRequest) {
 
     const testOrgIds = testOrganizations.map(org => org.id)
 
+    // Use admin client to bypass RLS for delete operations
+    const adminClient = createAdminClient()
+
     // Delete organizations (cascade will handle related data)
-    const { error } = await supabase
+    const { error, count: deletedCount } = await adminClient
       .from('organizations')
-      .delete()
+      .delete({ count: 'exact' })
       .in('id', testOrgIds)
 
     if (error) {
+      console.error('Delete error:', error)
       return NextResponse.json({ error: error.message }, { status: 500 })
     }
 
@@ -75,7 +79,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ 
       success: true, 
-      deleted_count: testOrgIds.length 
+      deleted_count: deletedCount || testOrgIds.length
     })
   } catch (error) {
     console.error('Error bulk deleting organizations:', error)

@@ -16,6 +16,7 @@ interface ClientOnlyNonConsumablesProps {
   householdId: string
   userId: string
   userRole: string
+  selectedItemId?: string | null
 }
 
 export default function ClientOnlyNonConsumables(props: ClientOnlyNonConsumablesProps) {

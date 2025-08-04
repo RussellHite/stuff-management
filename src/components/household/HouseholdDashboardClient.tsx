@@ -3,6 +3,7 @@
 import ActivityFeed from './ActivityFeed'
 import InventoryStatus from './InventoryStatus'
 import PageHeader from '../layout/PageHeader'
+import GlobalSearch from './GlobalSearch'
 import { Toaster } from 'react-hot-toast'
 
 interface HouseholdDashboardClientProps {
@@ -40,88 +41,33 @@ export default function HouseholdDashboardClient({
       <Toaster position="top-right" />
       
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Header */}
+        {/* Header with Search */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">
-            Welcome back, {userName}! 👋
-          </h1>
-          <p className="text-gray-600 mt-2">
-            {householdName} - Family inventory dashboard
-          </p>
-        </div>
-
-        {/* Stats Overview */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
-          <div className="bg-white rounded-lg shadow p-6">
-            <div className="flex items-center">
-              <div className="flex-shrink-0">
-                <div className="w-8 h-8 bg-blue-100 rounded-md flex items-center justify-center">
-                  🥫
-                </div>
-              </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-500">Consumables</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.totalConsumables}</p>
-              </div>
+          <div className="flex items-center justify-between gap-6">
+            <div className="flex-1">
+              <h1 className="text-3xl font-bold text-gray-900">
+                Welcome back, {userName}! 👋
+              </h1>
+              <p className="text-gray-600 mt-2">
+                {householdName} - Family inventory dashboard
+              </p>
             </div>
-          </div>
-
-          <div className="bg-white rounded-lg shadow p-6">
-            <div className="flex items-center">
-              <div className="flex-shrink-0">
-                <div className="w-8 h-8 bg-green-100 rounded-md flex items-center justify-center">
-                  🔧
-                </div>
-              </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-500">Household Items</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.totalNonConsumables}</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-lg shadow p-6">
-            <div className="flex items-center">
-              <div className="flex-shrink-0">
-                <div className="w-8 h-8 bg-yellow-100 rounded-md flex items-center justify-center">
-                  🛒
-                </div>
-              </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-500">Shopping List</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.shoppingListCount}</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-lg shadow p-6">
-            <div className="flex items-center">
-              <div className="flex-shrink-0">
-                <div className="w-8 h-8 bg-red-100 rounded-md flex items-center justify-center">
-                  ⚠️
-                </div>
-              </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-500">Need Reorder</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.lowStockCount}</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-lg shadow p-6">
-            <div className="flex items-center">
-              <div className="flex-shrink-0">
-                <div className="w-8 h-8 bg-orange-100 rounded-md flex items-center justify-center">
-                  🛠️
-                </div>
-              </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-500">Need Attention</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.itemsNeedingAttention}</p>
-              </div>
+            <div className="flex-1 max-w-md">
+              <GlobalSearch 
+                householdId={householdId}
+                onItemSelect={(item) => {
+                  // Navigate to item detail based on type
+                  if (item.type === 'consumable') {
+                    window.location.href = `/dashboard/household/manage?tab=consumables&item=${item.id}`
+                  } else {
+                    window.location.href = `/dashboard/household/manage?tab=non-consumables&item=${item.id}`
+                  }
+                }}
+              />
             </div>
           </div>
         </div>
+
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Real-time Inventory Status */}
@@ -201,68 +147,6 @@ export default function HouseholdDashboardClient({
             </div>
           </div>
         )}
-
-        {/* Quick Actions */}
-        <div className="mt-8 bg-white rounded-lg shadow">
-          <div className="p-6 border-b border-gray-200">
-            <h3 className="text-lg font-semibold text-gray-900">🚀 Quick Actions</h3>
-          </div>
-          <div className="p-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              <a href="/dashboard/household/manage" className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 text-center block">
-                <div className="text-2xl mb-2">➕</div>
-                <div className="font-medium">Manage Inventory</div>
-                <div className="text-sm text-gray-500">Add & organize items</div>
-              </a>
-              
-              <button className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 text-center">
-                <div className="text-2xl mb-2">📱</div>
-                <div className="font-medium">Scan QR</div>
-                <div className="text-sm text-gray-500">Quick item lookup</div>
-              </button>
-              
-              <a href="/dashboard/household/shopping" className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 text-center block">
-                <div className="text-2xl mb-2">🛒</div>
-                <div className="font-medium">Shopping List</div>
-                <div className="text-sm text-gray-500">Manage shopping</div>
-              </a>
-              
-              <a href="/dashboard/household/family" className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 text-center block">
-                <div className="text-2xl mb-2">👥</div>
-                <div className="font-medium">Family</div>
-                <div className="text-sm text-gray-500">Manage members</div>
-              </a>
-            </div>
-          </div>
-        </div>
-
-        {/* Household Locations */}
-        <div className="mt-8 bg-white rounded-lg shadow">
-          <div className="p-6 border-b border-gray-200">
-            <h3 className="text-lg font-semibold text-gray-900">🏠 Household Locations</h3>
-          </div>
-          <div className="p-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {locations?.map((location: any) => (
-                <div key={location.id} className="p-4 border border-gray-200 rounded-lg">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <div className="font-medium text-gray-900">{location.room_name}</div>
-                      {location.description && (
-                        <div className="text-sm text-gray-500">{location.description}</div>
-                      )}
-                    </div>
-                    {location.is_primary_storage && (
-                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                        Storage
-                      </span>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
       </div>
     </div>
   )

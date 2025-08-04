@@ -1,11 +1,11 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useSearchParams } from 'next/navigation'
 import LocationManager from './LocationManager'
 import ConsumablesManager from './ConsumablesManager'
 import ClientOnlyNonConsumables from './ClientOnlyNonConsumables'
-import FamilyMemberManager from './FamilyMemberManager'
-import { Home, Package, Settings, Users } from 'lucide-react'
+import { Home, Package, Settings } from 'lucide-react'
 
 interface HouseholdManagerClientProps {
   householdId: string
@@ -20,15 +20,28 @@ export default function HouseholdManagerClient({
   userRole,
   householdName 
 }: HouseholdManagerClientProps) {
-  const [activeTab, setActiveTab] = useState<'locations' | 'consumables' | 'non-consumables' | 'family'>('locations')
+  const [activeTab, setActiveTab] = useState<'locations' | 'consumables' | 'non-consumables'>('locations')
+  const [selectedItemId, setSelectedItemId] = useState<string | null>(null)
+  const searchParams = useSearchParams()
 
-  const canManageFamily = userRole === 'admin' || userRole === 'manager'
+  // Handle URL parameters for direct item access
+  useEffect(() => {
+    const tab = searchParams.get('tab')
+    const itemId = searchParams.get('item')
+    
+    if (tab && ['locations', 'consumables', 'non-consumables'].includes(tab)) {
+      setActiveTab(tab as 'locations' | 'consumables' | 'non-consumables')
+    }
+    
+    if (itemId) {
+      setSelectedItemId(itemId)
+    }
+  }, [searchParams])
   
   const tabs = [
     { id: 'locations', label: 'Locations', icon: Home },
     { id: 'consumables', label: 'Consumables', icon: Package },
     { id: 'non-consumables', label: 'Household Items', icon: Settings },
-    ...(canManageFamily ? [{ id: 'family', label: 'Family', icon: Users }] : [])
   ]
 
   const canEdit = userRole === 'admin' || userRole === 'manager' || userRole === 'employee'
@@ -72,6 +85,7 @@ export default function HouseholdManagerClient({
             householdId={householdId}
             userRole={userRole}
             userId={userId}
+            selectedItemId={selectedItemId}
           />
         )}
         
@@ -80,17 +94,10 @@ export default function HouseholdManagerClient({
             householdId={householdId}
             userId={userId}
             userRole={userRole}
+            selectedItemId={selectedItemId}
           />
         )}
         
-        {activeTab === 'family' && (
-          <FamilyMemberManager
-            householdId={householdId}
-            userId={userId}
-            userRole={userRole}
-            householdName={householdName}
-          />
-        )}
       </div>
     </div>
   )

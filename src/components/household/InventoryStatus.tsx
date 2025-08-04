@@ -182,15 +182,13 @@ export default function InventoryStatus({ householdId, compact = false }: Invent
   return (
     <div className="bg-white rounded-lg shadow">
       <div className="p-6 border-b border-gray-200">
-        <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-gray-900 flex items-center">
-            <Package className="h-5 w-5 mr-2" />
-            Inventory Status
-          </h2>
-          <span className="text-sm text-gray-500">
-            Real-time updates enabled
-          </span>
-        </div>
+        <h2 className="text-lg font-semibold text-gray-900 flex items-center">
+          <Package className="h-5 w-5 mr-2" />
+          Inventory Status
+        </h2>
+        <p className="text-sm text-gray-500 mt-1">
+          Real-time updates enabled
+        </p>
       </div>
       
       <div className="p-6">

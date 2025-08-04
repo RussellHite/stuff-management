@@ -6,7 +6,6 @@ import {
   Plus, 
   Edit, 
   Trash2, 
-  QrCode, 
   Clock,
   Package,
   Search,
@@ -14,21 +13,18 @@ import {
   Filter
 } from 'lucide-react'
 import { toast } from 'react-hot-toast'
-import QRCodeGenerator from './QRCodeGenerator'
 import NonConsumableDetailView from './NonConsumableDetailView'
 import StorageSelector from './StorageSelector'
 
 interface NonConsumable {
   id: string
   name: string
-  description: string
   brand: string
   model: string
   serial_number: string
   current_quality_rating: 'excellent' | 'good' | 'fair' | 'poor' | 'broken'
   purchase_date: string
   warranty_expiration: string
-  purchase_price: number
   notes: string
   is_active: boolean
   created_at: string
@@ -52,26 +48,26 @@ interface Location {
   id: string
   room_name: string
   description: string
-  is_primary_storage: boolean
 }
 
 interface NonConsumablesManagerProps {
   householdId: string
   userId: string
   userRole: string
+  selectedItemId?: string | null
 }
 
 export default function NonConsumablesManager({ 
   householdId, 
   userId, 
-  userRole 
+  userRole,
+  selectedItemId
 }: NonConsumablesManagerProps) {
   console.log('NonConsumablesManager component rendered')
   const [items, setItems] = useState<NonConsumable[]>([])
   const [locations, setLocations] = useState<Location[]>([])
   const [isAdding, setIsAdding] = useState(false)
   const [editingItem, setEditingItem] = useState<NonConsumable | null>(null)
-  const [showQRCode, setShowQRCode] = useState<NonConsumable | null>(null)
   const [viewingDetail, setViewingDetail] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
@@ -167,6 +163,29 @@ export default function NonConsumablesManager({
     fetchLocations()
   }, [householdId, fetchItems, fetchLocations])
 
+  // Handle direct item selection from search
+  useEffect(() => {
+    if (selectedItemId && items.length > 0) {
+      const item = items.find(i => i.id === selectedItemId)
+      if (item) {
+        setEditingItem(item)
+        setEditLocationId(item.primary_location_id)
+        setEditContainerId(item.storage_container_id)
+        // Scroll to the item in the list
+        setTimeout(() => {
+          const element = document.getElementById(`non-consumable-${selectedItemId}`)
+          if (element) {
+            element.scrollIntoView({ behavior: 'smooth', block: 'center' })
+            element.classList.add('ring-2', 'ring-blue-500', 'ring-opacity-50')
+            setTimeout(() => {
+              element.classList.remove('ring-2', 'ring-blue-500', 'ring-opacity-50')
+            }, 3000)
+          }
+        }, 100)
+      }
+    }
+  }, [selectedItemId, items])
+
   const addItem = async (event: React.FormEvent<HTMLFormElement>) => {
     console.log('addItem function called')
     event.preventDefault()
@@ -192,18 +211,15 @@ export default function NonConsumablesManager({
       // Clear previous errors
       setValidationErrors({})
       
-      const purchasePrice = formData.get('purchase_price') as string
       const itemData = {
         organization_id: householdId,
         name: formData.get('name') as string,
-        description: formData.get('description') as string,
         brand: formData.get('brand') as string || null,
         model: formData.get('model') as string || null,
         serial_number: formData.get('serial_number') as string || null,
         current_quality_rating: formData.get('current_condition') as string || 'good',
         purchase_date: formData.get('purchase_date') as string || null,
         warranty_expiration: formData.get('warranty_expiry') as string || null,
-        purchase_price: purchasePrice ? parseFloat(purchasePrice) : null,
         primary_location_id: selectedLocationId,
         storage_container_id: selectedContainerId,
         notes: formData.get('maintenance_notes') as string || null,
@@ -252,17 +268,14 @@ export default function NonConsumablesManager({
       // Clear previous errors
       setValidationErrors({})
       
-      const purchasePrice = formData.get('purchase_price') as string
       const itemData = {
         name: formData.get('name') as string,
-        description: formData.get('description') as string,
         brand: formData.get('brand') as string || null,
         model: formData.get('model') as string || null,
         serial_number: formData.get('serial_number') as string || null,
         current_quality_rating: formData.get('current_condition') as string,
         purchase_date: formData.get('purchase_date') as string || null,
         warranty_expiration: formData.get('warranty_expiry') as string || null,
-        purchase_price: purchasePrice ? parseFloat(purchasePrice) : null,
         primary_location_id: editLocationId,
         storage_container_id: editContainerId,
         notes: formData.get('maintenance_notes') as string || null,
@@ -341,7 +354,6 @@ export default function NonConsumablesManager({
   const getFilteredItems = () => {
     return items.filter(item => {
       const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           item.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
                            item.brand?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                            item.model?.toLowerCase().includes(searchTerm.toLowerCase())
       
@@ -558,31 +570,8 @@ export default function NonConsumablesManager({
                 />
               </div>
               
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Purchase Price
-                </label>
-                <input
-                  type="number"
-                  name="purchase_price"
-                  step="0.01"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="0.00"
-                />
-              </div>
             </div>
             
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Description
-              </label>
-              <textarea
-                name="description"
-                rows={3}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="Item description..."
-              />
-            </div>
             
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -659,7 +648,6 @@ export default function NonConsumablesManager({
               setValidationErrors({})
             }}
             onDelete={() => deleteItem(item)}
-            onShowQRCode={() => setShowQRCode(item)}
             onViewDetail={() => setViewingDetail(item.id)}
             getConditionDisplay={getConditionDisplay}
           />
@@ -689,34 +677,6 @@ export default function NonConsumablesManager({
         </div>
       )}
 
-      {/* QR Code Modal */}
-      {showQRCode && (
-        <div 
-          className="fixed inset-0 bg-gradient-to-br from-blue-500/75 to-purple-600/75 flex items-center justify-center p-4 z-50"
-          onClick={(e) => {
-            if (e.target === e.currentTarget) {
-              setShowQRCode(null)
-            }
-          }}
-        >
-          <div className="bg-white rounded-lg max-w-md w-full p-6">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-semibold">QR Code for {showQRCode.name}</h3>
-              <button
-                onClick={() => setShowQRCode(null)}
-                className="text-gray-400 hover:text-gray-600"
-              >
-                ×
-              </button>
-            </div>
-            <QRCodeGenerator
-              value={`ITEM:${showQRCode.id}:${showQRCode.name}:non-consumable`}
-              itemName={showQRCode.name}
-              onClose={() => setShowQRCode(null)}
-            />
-          </div>
-        </div>
-      )}
 
       {/* Edit Item Modal */}
       {editingItem && (
@@ -859,31 +819,8 @@ export default function NonConsumablesManager({
                     />
                   </div>
                   
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Purchase Price
-                    </label>
-                    <input
-                      type="number"
-                      name="purchase_price"
-                      step="0.01"
-                      defaultValue={editingItem.purchase_price || ''}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                  </div>
                 </div>
                 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Description
-                  </label>
-                  <textarea
-                    name="description"
-                    rows={3}
-                    defaultValue={editingItem.description || ''}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
                 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -930,7 +867,6 @@ function NonConsumableCard({
   canEdit, 
   onEdit, 
   onDelete, 
-  onShowQRCode,
   onViewDetail,
   getConditionDisplay
 }: {
@@ -938,14 +874,16 @@ function NonConsumableCard({
   canEdit: boolean
   onEdit: () => void
   onDelete: () => void
-  onShowQRCode: () => void
   onViewDetail: () => void
   getConditionDisplay: (condition: string) => any
 }) {
   const conditionConfig = getConditionDisplay(item.current_quality_rating)
   
   return (
-    <div className="bg-white rounded-lg shadow-md border overflow-hidden">
+    <div 
+      id={`non-consumable-${item.id}`}
+      className="bg-white rounded-lg shadow-md border overflow-hidden"
+    >
       <div className="p-4">
         <div className="flex justify-between items-start mb-2">
           <h3 className="text-lg font-semibold text-gray-900 line-clamp-1">{item.name}</h3>
@@ -994,10 +932,6 @@ function NonConsumableCard({
           )}
         </div>
 
-        {/* Description */}
-        {item.description && (
-          <p className="text-sm text-gray-600 mb-3 line-clamp-2">{item.description}</p>
-        )}
 
         {/* Action Buttons */}
         <div className="flex items-center justify-between">
@@ -1008,13 +942,6 @@ function NonConsumableCard({
               title="View details"
             >
               <Eye className="h-4 w-4" />
-            </button>
-            <button
-              onClick={onShowQRCode}
-              className="p-1 text-gray-400 hover:text-blue-600"
-              title="Generate QR Code"
-            >
-              <QrCode className="h-4 w-4" />
             </button>
           </div>
           

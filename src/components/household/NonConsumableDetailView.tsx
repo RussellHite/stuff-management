@@ -10,7 +10,6 @@ import {
   Package, 
   User, 
   Clock, 
-  QrCode,
   AlertCircle,
   CheckCircle2,
   Edit
@@ -18,7 +17,6 @@ import {
 import { toast } from 'react-hot-toast'
 import { format, formatDistanceToNow } from 'date-fns'
 import ConditionTracker from './ConditionTracker'
-import QRCodeGenerator from './QRCodeGenerator'
 
 interface NonConsumableDetail {
   id: string
@@ -70,7 +68,6 @@ export default function NonConsumableDetailView({
 }: NonConsumableDetailViewProps) {
   const [item, setItem] = useState<NonConsumableDetail | null>(null)
   const [loading, setLoading] = useState(true)
-  const [showQRCode, setShowQRCode] = useState(false)
 
   const conditions = [
     { value: 'excellent', label: 'Excellent', color: 'bg-green-100 text-green-800 border-green-200', icon: '✨' },
@@ -204,13 +201,6 @@ export default function NonConsumableDetailView({
           <h1 className="text-2xl font-bold text-gray-900">{item.name}</h1>
         </div>
         <div className="flex items-center space-x-3">
-          <button
-            onClick={() => setShowQRCode(true)}
-            className="flex items-center px-4 py-2 text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200"
-          >
-            <QrCode className="h-4 w-4 mr-2" />
-            QR Code
-          </button>
         </div>
       </div>
 
@@ -357,34 +347,6 @@ export default function NonConsumableDetailView({
         />
       </div>
 
-      {/* QR Code Modal */}
-      {showQRCode && (
-        <div 
-          className="fixed inset-0 bg-gradient-to-br from-blue-500/75 to-purple-600/75 flex items-center justify-center p-4 z-50"
-          onClick={(e) => {
-            if (e.target === e.currentTarget) {
-              setShowQRCode(false)
-            }
-          }}
-        >
-          <div className="bg-white rounded-lg max-w-md w-full p-6">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-semibold">QR Code for {item.name}</h3>
-              <button
-                onClick={() => setShowQRCode(false)}
-                className="text-gray-400 hover:text-gray-600"
-              >
-                ×
-              </button>
-            </div>
-            <QRCodeGenerator
-              value={`ITEM:${item.id}:${item.name}:non-consumable`}
-              itemName={item.name}
-              onClose={() => setShowQRCode(false)}
-            />
-          </div>
-        </div>
-      )}
     </div>
   )
 }

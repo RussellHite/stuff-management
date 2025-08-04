@@ -1,7 +1,7 @@
 'use client'
 
 import { ReactNode } from 'react'
-import { Shield, LogOut, Home, Users, BarChart3, Settings } from 'lucide-react'
+import { Shield, LogOut, Home, Users, BarChart3, Settings, Mail } from 'lucide-react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 
@@ -11,13 +11,20 @@ interface AdminUser {
   name: string
 }
 
+interface OwnerInfo {
+  email: string
+  name: string
+}
+
 interface AdminLayoutProps {
   children: ReactNode
   adminUser: AdminUser
   currentPage: string
+  pageTitle?: ReactNode
+  ownerInfo?: OwnerInfo
 }
 
-export default function AdminLayout({ children, adminUser, currentPage }: AdminLayoutProps) {
+export default function AdminLayout({ children, adminUser, currentPage, pageTitle, ownerInfo }: AdminLayoutProps) {
   const pathname = usePathname()
   
   const navItems = [
@@ -44,10 +51,20 @@ export default function AdminLayout({ children, adminUser, currentPage }: AdminL
               <span className="font-medium">Admin</span>
             </Link>
             <span className="text-gray-400">/</span>
-            <h1 className="text-2xl font-bold text-gray-900">{currentPage}</h1>
+            <h1 className="text-2xl font-bold text-gray-900">
+              {pageTitle || currentPage}
+            </h1>
           </div>
           
           <div className="flex items-center space-x-4">
+            {ownerInfo && (
+              <div className="flex items-center text-gray-600 mr-4">
+                <Mail className="w-4 h-4 mr-1" />
+                <span className="text-sm">{ownerInfo.email}</span>
+                <span className="mx-2">•</span>
+                <span className="text-sm">{ownerInfo.name}</span>
+              </div>
+            )}
             <div className="text-right">
               <p className="text-sm font-medium text-gray-900">{adminUser.name}</p>
               <p className="text-xs text-gray-500">{adminUser.email}</p>

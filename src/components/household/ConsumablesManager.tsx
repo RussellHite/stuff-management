@@ -2,27 +2,23 @@
 
 import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase/client'
-import { Plus, Edit, Trash2, Minus, QrCode, AlertTriangle, Package, Search, Filter } from 'lucide-react'
+import { Plus, Edit, Trash2, Minus, AlertTriangle, Package, Search, Filter } from 'lucide-react'
 import { toast } from 'react-hot-toast'
-import QRCodeGenerator from './QRCodeGenerator'
 import RichTextEditor from './RichTextEditor'
 import StorageSelector from './StorageSelector'
 
 interface Consumable {
   id: string
   name: string
-  description: string | null
   brand: string | null
   size_quantity: string | null
   current_quantity: number
   reorder_threshold: number
   reorder_info: string | null
-  cost_per_unit: number | null
   primary_location_id: string | null
   storage_container_id: string | null
   qr_code: string | null
   barcode: string | null
-  expiration_date: string | null
   purchase_date: string | null
   notes: string | null
   is_active: boolean
@@ -47,17 +43,17 @@ interface ConsumablesManagerProps {
   householdId: string
   userRole: string
   userId: string
+  selectedItemId?: string | null
 }
 
-export default function ConsumablesManager({ householdId, userRole, userId }: ConsumablesManagerProps) {
+export default function ConsumablesManager({ householdId, userRole, userId, selectedItemId }: ConsumablesManagerProps) {
   const [consumables, setConsumables] = useState<Consumable[]>([])
   const [locations, setLocations] = useState<Location[]>([])
   const [isAddingItem, setIsAddingItem] = useState(false)
   const [editingItem, setEditingItem] = useState<Consumable | null>(null)
-  const [showQRCode, setShowQRCode] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
-  const [filterBy, setFilterBy] = useState<'all' | 'low_stock' | 'expired'>('all')
+  const [filterBy, setFilterBy] = useState<'all' | 'low_stock'>('all')
   const [selectedLocationId, setSelectedLocationId] = useState('')
   const [selectedContainerId, setSelectedContainerId] = useState<string | null>(null)
   const [editLocationId, setEditLocationId] = useState('')
@@ -69,6 +65,27 @@ export default function ConsumablesManager({ householdId, userRole, userId }: Co
     fetchConsumables()
     fetchLocations()
   }, [householdId])
+
+  // Handle direct item selection from search
+  useEffect(() => {
+    if (selectedItemId && consumables.length > 0) {
+      const item = consumables.find(c => c.id === selectedItemId)
+      if (item) {
+        setEditingItem(item)
+        // Scroll to the item in the list
+        setTimeout(() => {
+          const element = document.getElementById(`consumable-${selectedItemId}`)
+          if (element) {
+            element.scrollIntoView({ behavior: 'smooth', block: 'center' })
+            element.classList.add('ring-2', 'ring-blue-500', 'ring-opacity-50')
+            setTimeout(() => {
+              element.classList.remove('ring-2', 'ring-blue-500', 'ring-opacity-50')
+            }, 3000)
+          }
+        }, 100)
+      }
+    }
+  }, [selectedItemId, consumables])
 
   const fetchConsumables = async () => {
     try {
@@ -117,17 +134,14 @@ export default function ConsumablesManager({ householdId, userRole, userId }: Co
     const itemData = {
       organization_id: householdId,
       name: formData.get('name') as string,
-      description: formData.get('description') as string || null,
       brand: formData.get('brand') as string || null,
       size_quantity: formData.get('size_quantity') as string || null,
       current_quantity: parseInt(formData.get('current_quantity') as string) || 0,
       reorder_threshold: parseInt(formData.get('reorder_threshold') as string) || 1,
       reorder_info: formData.get('reorder_info') as string || null,
-      cost_per_unit: parseFloat(formData.get('cost_per_unit') as string) || null,
       primary_location_id: selectedLocationId || null,
       storage_container_id: selectedContainerId,
       barcode: formData.get('barcode') as string || null,
-      expiration_date: formData.get('expiration_date') as string || null,
       purchase_date: formData.get('purchase_date') as string || null,
       notes: formData.get('notes') as string || null,
       created_by: userId,
@@ -171,16 +185,13 @@ export default function ConsumablesManager({ householdId, userRole, userId }: Co
 
     const itemData = {
       name: formData.get('name') as string,
-      description: formData.get('description') as string || null,
       brand: formData.get('brand') as string || null,
       size_quantity: formData.get('size_quantity') as string || null,
       reorder_threshold: parseInt(formData.get('reorder_threshold') as string) || 1,
       reorder_info: formData.get('reorder_info') as string || null,
-      cost_per_unit: parseFloat(formData.get('cost_per_unit') as string) || null,
       primary_location_id: editLocationId || null,
       storage_container_id: editContainerId,
       barcode: formData.get('barcode') as string || null,
-      expiration_date: formData.get('expiration_date') as string || null,
       purchase_date: formData.get('purchase_date') as string || null,
       notes: formData.get('notes') as string || null,
       updated_at: new Date().toISOString()
@@ -299,8 +310,6 @@ export default function ConsumablesManager({ householdId, userRole, userId }: Co
     switch (filterBy) {
       case 'low_stock':
         return item.current_quantity <= item.reorder_threshold
-      case 'expired':
-        return item.expiration_date && new Date(item.expiration_date) < new Date()
       default:
         return true
     }
@@ -377,19 +386,6 @@ export default function ConsumablesManager({ householdId, userRole, userId }: Co
           />
         </div>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Cost per Unit
-          </label>
-          <input
-            type="number"
-            name="cost_per_unit"
-            defaultValue={item?.cost_per_unit || ''}
-            step="0.01"
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            placeholder="0.00"
-          />
-        </div>
 
         <div>
           <StorageSelector
@@ -415,17 +411,6 @@ export default function ConsumablesManager({ householdId, userRole, userId }: Co
           />
         </div>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Expiration Date
-          </label>
-          <input
-            type="date"
-            name="expiration_date"
-            defaultValue={item?.expiration_date || ''}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-        </div>
 
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -440,18 +425,6 @@ export default function ConsumablesManager({ householdId, userRole, userId }: Co
         </div>
       </div>
 
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
-          Description
-        </label>
-        <textarea
-          name="description"
-          defaultValue={item?.description || ''}
-          rows={3}
-          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-          placeholder="Brief description of the item"
-        />
-      </div>
 
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -546,7 +519,6 @@ export default function ConsumablesManager({ householdId, userRole, userId }: Co
           >
             <option value="all">All Items</option>
             <option value="low_stock">Low Stock</option>
-            <option value="expired">Expired</option>
           </select>
         </div>
       </div>
@@ -617,14 +589,6 @@ export default function ConsumablesManager({ householdId, userRole, userId }: Co
         </div>
       )}
 
-      {/* QR Code Modal */}
-      {showQRCode && (
-        <QRCodeGenerator
-          value={showQRCode}
-          itemName={consumables.find(c => c.qr_code === showQRCode)?.name || ''}
-          onClose={() => setShowQRCode(null)}
-        />
-      )}
 
       {/* Consumables Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -640,7 +604,6 @@ export default function ConsumablesManager({ householdId, userRole, userId }: Co
             }}
             onDelete={() => handleDeleteItem(item.id, item.name)}
             onQuantityChange={(newQuantity) => handleQuantityChange(item.id, newQuantity, item.name)}
-            onShowQRCode={() => setShowQRCode(item.qr_code)}
           />
         ))}
       </div>
@@ -684,13 +647,14 @@ function ConsumableCard({
   onEdit: () => void
   onDelete: () => void
   onQuantityChange: (newQuantity: number) => void
-  onShowQRCode: () => void
 }) {
   const isLowStock = item.current_quantity <= item.reorder_threshold
-  const isExpired = item.expiration_date && new Date(item.expiration_date) < new Date()
 
   return (
-    <div className="bg-white rounded-lg shadow-md border overflow-hidden">
+    <div 
+      id={`consumable-${item.id}`}
+      className="bg-white rounded-lg shadow-md border overflow-hidden"
+    >
       <div className="p-4">
         <div className="flex justify-between items-start mb-2">
           <h3 className="text-lg font-semibold text-gray-900">{item.name}</h3>
@@ -744,12 +708,6 @@ function ConsumableCard({
               </button>
             )}
           </div>
-          <button
-            onClick={onShowQRCode}
-            className="p-1 text-gray-400 hover:text-blue-600"
-          >
-            <QrCode className="h-4 w-4" />
-          </button>
         </div>
 
         {/* Status Indicators */}
@@ -758,11 +716,6 @@ function ConsumableCard({
             <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
               <AlertTriangle className="h-3 w-3 mr-1" />
               Low Stock
-            </span>
-          )}
-          {isExpired && (
-            <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
-              Expired
             </span>
           )}
         </div>

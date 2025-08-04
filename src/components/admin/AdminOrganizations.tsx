@@ -151,17 +151,26 @@ export default function AdminOrganizations({ organizations, adminUser }: AdminOr
 
   const bulkDeleteOrganizations = async () => {
     try {
+      console.log('Attempting to delete organizations:', selectedOrgs)
       const response = await fetch('/api/admin/organizations/bulk-delete', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ organizationIds: selectedOrgs })
       })
       
+      const result = await response.json()
+      console.log('Delete response:', result)
+      
       if (response.ok) {
+        setSelectedOrgs([])
         window.location.reload()
+      } else {
+        console.error('Delete failed:', result.error)
+        alert(`Delete failed: ${result.error}`)
       }
     } catch (error) {
       console.error('Error deleting organizations:', error)
+      alert('Error deleting organizations')
     }
   }
 
@@ -592,10 +601,28 @@ export default function AdminOrganizations({ organizations, adminUser }: AdminOr
                 Cancel
               </button>
               <button
-                onClick={() => {
-                  setSelectedOrgs(selectedTestAccounts)
-                  bulkDeleteOrganizations()
+                onClick={async () => {
                   setShowDeleteConfirm(false)
+                  try {
+                    const response = await fetch('/api/admin/organizations/bulk-delete', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ organizationIds: selectedTestAccounts })
+                    })
+                    
+                    const result = await response.json()
+                    
+                    if (response.ok) {
+                      setSelectedOrgs([])
+                      // Force a hard reload to show updated data
+                      window.location.href = window.location.href
+                    } else {
+                      alert(`Delete failed: ${result.error}`)
+                    }
+                  } catch (error) {
+                    console.error('Error deleting organizations:', error)
+                    alert('Error deleting organizations')
+                  }
                 }}
                 className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
               >
