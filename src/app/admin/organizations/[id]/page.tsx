@@ -4,12 +4,13 @@ import AdminLayout from '@/components/admin/AdminLayout'
 import { Mail, Users, Home, Calendar, Package, MapPin } from 'lucide-react'
 
 interface OrganizationDetailPageProps {
-  params: {
+  params: Promise<{
     id: string
-  }
+  }>
 }
 
 export default async function OrganizationDetailPage({ params }: OrganizationDetailPageProps) {
+  const { id } = await params
   const supabase = await createClient()
   
   const { data: { user } } = await supabase.auth.getUser()
@@ -33,7 +34,7 @@ export default async function OrganizationDetailPage({ params }: OrganizationDet
   const { data: organization, error } = await supabase
     .from('organizations')
     .select('*')
-    .eq('id', params.id)
+    .eq('id', id)
     .single()
 
   if (error || !organization) {
@@ -53,13 +54,13 @@ export default async function OrganizationDetailPage({ params }: OrganizationDet
         email
       )
     `)
-    .eq('organization_id', params.id)
+    .eq('organization_id', id)
 
   // Get organization analytics
   const { data: analytics } = await supabase
     .from('organization_analytics')
     .select('*')
-    .eq('organization_id', params.id)
+    .eq('organization_id', id)
     .order('date', { ascending: false })
     .limit(1)
 
