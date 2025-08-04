@@ -2,83 +2,110 @@ import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
 export async function middleware(request: NextRequest) {
-  let response = NextResponse.next({
-    request: {
-      headers: request.headers,
-    },
-  })
-
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        get(name: string) {
-          return request.cookies.get(name)?.value
-        },
-        set(name: string, value: string, options: any) {
-          response = NextResponse.next({
-            request: {
-              headers: request.headers,
-            },
-          })
-          response.cookies.set({
-            name,
-            value,
-            ...options,
-          })
-        },
-        remove(name: string, options: any) {
-          response = NextResponse.next({
-            request: {
-              headers: request.headers,
-            },
-          })
-          response.cookies.set({
-            name,
-            value: '',
-            ...options,
-          })
-        },
+  try {
+    let response = NextResponse.next({
+      request: {
+        headers: request.headers,
       },
-    }
-  )
+    })
 
-  const { data: { user } } = await supabase.auth.getUser()
-  
-  // Admin routes (requires admin authentication)
-  if (request.nextUrl.pathname.startsWith('/admin')) {
-    if (!user) {
-      return NextResponse.redirect(new URL('/auth/admin-login', request.url))
+    // Check if required environment variables are present
+    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+      console.error('Missing Supabase environment variables')
+      return response
     }
+
+    const supabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+      {
+        cookies: {
+          get(name: string) {
+            return request.cookies.get(name)?.value
+          },
+          set(name: string, value: string, options: any) {
+            response = NextResponse.next({
+              request: {
+                headers: request.headers,
+              },
+            })
+            response.cookies.set({
+              name,
+              value,
+              ...options,
+            })
+          },
+          remove(name: string, options: any) {
+            response = NextResponse.next({
+              request: {
+                headers: request.headers,
+              },
+            })
+            response.cookies.set({
+              name,
+              value: '',
+              ...options,
+            })
+          },
+        },
+      }
+    )
+
+    const { data: { user }, error } = await supabase.auth.getUser()
     
-    // Check if user is an application admin
-    const { data: userProfile } = await supabase
-      .from('user_profiles')
-      .select('is_application_admin')
-      .eq('id', user.id)
-      .single()
-    
-    if (!userProfile?.is_application_admin) {
-      return NextResponse.redirect(new URL('/dashboard', request.url))
+    // If there's an error getting the user, continue without authentication
+    if (error) {
+      console.error('Error getting user in middleware:', error)
+      return response
     }
-  }
   
-  // Protected routes
-  if (request.nextUrl.pathname.startsWith('/dashboard')) {
-    if (!user) {
-      return NextResponse.redirect(new URL('/auth/login', request.url))
+    // Admin routes (requires admin authentication)
+    if (request.nextUrl.pathname.startsWith('/admin')) {
+      if (!user) {
+        return NextResponse.redirect(new URL('/auth/admin-login', request.url))
+      }
+      
+      // Check if user is an application admin
+      const { data: userProfile, error: profileError } = await supabase
+        .from('user_profiles')
+        .select('is_application_admin')
+        .eq('id', user.id)
+        .single()
+      
+      if (profileError) {
+        console.error('Error getting user profile in middleware:', profileError)
+        return NextResponse.redirect(new URL('/auth/admin-login', request.url))
+      }
+      
+      if (!userProfile?.is_application_admin) {
+        return NextResponse.redirect(new URL('/dashboard', request.url))
+      }
     }
-  }
-
-  // Auth routes (redirect to dashboard if already logged in)
-  if (request.nextUrl.pathname.startsWith('/auth')) {
-    if (user) {
-      return NextResponse.redirect(new URL('/dashboard', request.url))
+  
+    // Protected routes
+    if (request.nextUrl.pathname.startsWith('/dashboard')) {
+      if (!user) {
+        return NextResponse.redirect(new URL('/auth/login', request.url))
+      }
     }
-  }
 
-  return response
+    // Auth routes (redirect to dashboard if already logged in)
+    if (request.nextUrl.pathname.startsWith('/auth')) {
+      if (user) {
+        return NextResponse.redirect(new URL('/dashboard', request.url))
+      }
+    }
+
+    return response
+  } catch (error) {
+    console.error('Middleware error:', error)
+    // On any error, just continue to the requested page
+    return NextResponse.next({
+      request: {
+        headers: request.headers,
+      },
+    })
+  }
 }
 
 export const config = {
