@@ -100,12 +100,8 @@ export default async function OrganizationDetailPage({ params }: OrganizationDet
                   {String(value)}
                 </span>
               ))}
-              <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-                organization.onboarding_completed 
-                  ? 'bg-green-100 text-green-800' 
-                  : 'bg-yellow-100 text-yellow-800'
-              }`}>
-                {organization.onboarding_completed ? 'Active' : 'Onboarding'}
+              <span className="px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800">
+                Active
               </span>
             </div>
           </div>

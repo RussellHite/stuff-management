@@ -38,7 +38,6 @@ interface Organization {
   description: string | null
   type: string
   created_at: string
-  onboarding_completed: boolean
   tags: Record<string, string> | null
   memberCount: number
   adminCount: number
@@ -337,9 +336,9 @@ export default function AdminOrganizations({ organizations, adminUser }: AdminOr
           <div className="bg-white rounded-lg border shadow-sm p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Completed Onboarding</p>
+                <p className="text-sm font-medium text-gray-600">Active Organizations</p>
                 <p className="text-3xl font-bold text-gray-900">
-                  {formatNumber(organizations.filter(org => org.onboarding_completed).length)}
+                  {formatNumber(organizations.length)}
                 </p>
               </div>
               <div className="p-3 rounded-full bg-purple-100">
@@ -523,12 +522,8 @@ export default function AdminOrganizations({ organizations, adminUser }: AdminOr
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-                        org.onboarding_completed 
-                          ? 'bg-green-100 text-green-800' 
-                          : 'bg-yellow-100 text-yellow-800'
-                      }`}>
-                        {org.onboarding_completed ? 'Active' : 'Onboarding'}
+                      <span className="px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800">
+                        Active
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
