@@ -109,9 +109,9 @@ export default async function OrganizationDetailPage({ params }: OrganizationDet
           {ownerMember?.user_profiles && (
             <div className="flex items-center text-gray-600">
               <Mail className="w-4 h-4 mr-1" />
-              <span className="text-sm">{ownerMember.user_profiles?.email}</span>
+              <span className="text-sm">{(ownerMember.user_profiles as any)?.email}</span>
               <span className="mx-2">•</span>
-              <span className="text-sm">{ownerMember.user_profiles?.first_name} {ownerMember.user_profiles?.last_name}</span>
+              <span className="text-sm">{(ownerMember.user_profiles as any)?.first_name} {(ownerMember.user_profiles as any)?.last_name}</span>
             </div>
           )}
         </div>

@@ -61,7 +61,7 @@ function getEmailConfig(): EmailConfig {
 // Create email transporter
 function createTransporter() {
   const config = getEmailConfig()
-  return nodemailer.createTransporter(config)
+  return nodemailer.createTransport(config)
 }
 
 // Generate invitation email HTML
