@@ -309,7 +309,7 @@ export async function DELETE(
         target_id: memberToRemove.user_id,
         organization_id: organizationId,
         details: {
-          removed_user_email: memberToRemove.user_profiles?.email,
+          removed_user_email: (memberToRemove.user_profiles as any)?.email,
           removed_user_role: memberToRemove.role,
           member_id: memberId
         }
@@ -320,7 +320,7 @@ export async function DELETE(
       message: 'Member removed successfully',
       removed_member: {
         user_id: memberToRemove.user_id,
-        email: memberToRemove.user_profiles?.email,
+        email: (memberToRemove.user_profiles as any)?.email,
         role: memberToRemove.role
       }
     })
