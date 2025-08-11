@@ -10,6 +10,7 @@ export default function LoginForm() {
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const [magicLinkSent, setMagicLinkSent] = useState(false)
+  const [resetEmailSent, setResetEmailSent] = useState(false)
   const router = useRouter()
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -65,6 +66,33 @@ export default function LoginForm() {
     }
   }
 
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!email) {
+      toast.error('Please enter your email address')
+      return
+    }
+
+    setLoading(true)
+
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/auth/reset-password`,
+      })
+
+      if (error) {
+        toast.error(error.message)
+      } else {
+        setResetEmailSent(true)
+        toast.success('Password reset email sent!')
+      }
+    } catch (error) {
+      toast.error('An error occurred sending the reset email')
+    } finally {
+      setLoading(false)
+    }
+  }
+
   if (magicLinkSent) {
     return (
       <div className="max-w-md mx-auto mt-8 p-6 bg-white rounded-lg shadow-md">
@@ -78,6 +106,29 @@ export default function LoginForm() {
         <button
           onClick={() => {
             setMagicLinkSent(false)
+            setEmail('')
+          }}
+          className="w-full text-blue-600 hover:text-blue-700 text-sm"
+        >
+          Try a different email
+        </button>
+      </div>
+    )
+  }
+
+  if (resetEmailSent) {
+    return (
+      <div className="max-w-md mx-auto mt-8 p-6 bg-white rounded-lg shadow-md">
+        <h2 className="text-2xl font-bold text-center mb-6">Check Your Email</h2>
+        <p className="text-center text-gray-600 mb-4">
+          We've sent a password reset link to <strong>{email}</strong>
+        </p>
+        <p className="text-center text-sm text-gray-500 mb-4">
+          Click the link in your email to reset your password. You can close this window.
+        </p>
+        <button
+          onClick={() => {
+            setResetEmailSent(false)
             setEmail('')
           }}
           className="w-full text-blue-600 hover:text-blue-700 text-sm"
@@ -129,6 +180,16 @@ export default function LoginForm() {
           {loading ? 'Signing in...' : 'Sign In'}
         </button>
       </form>
+
+      <div className="mt-3 text-right">
+        <button
+          onClick={handleForgotPassword}
+          disabled={loading}
+          className="text-sm text-blue-600 hover:text-blue-700 disabled:opacity-50"
+        >
+          Forgot your password?
+        </button>
+      </div>
 
       <div className="mt-4 text-center">
         <span className="text-gray-500">or</span>

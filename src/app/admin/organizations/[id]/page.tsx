@@ -1,7 +1,8 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import AdminLayout from '@/components/admin/AdminLayout'
-import { Mail, Users, Home, Calendar, Package, MapPin } from 'lucide-react'
+import OrganizationMemberManager from '@/components/admin/OrganizationMemberManager'
+import { Mail, Users, Home, Package, MapPin } from 'lucide-react'
 
 interface OrganizationDetailPageProps {
   params: Promise<{
@@ -108,9 +109,9 @@ export default async function OrganizationDetailPage({ params }: OrganizationDet
           {ownerMember?.user_profiles && (
             <div className="flex items-center text-gray-600">
               <Mail className="w-4 h-4 mr-1" />
-              <span className="text-sm">{(ownerMember.user_profiles as any).email}</span>
+              <span className="text-sm">{ownerMember.user_profiles?.email}</span>
               <span className="mx-2">•</span>
-              <span className="text-sm">{(ownerMember.user_profiles as any).first_name} {(ownerMember.user_profiles as any).last_name}</span>
+              <span className="text-sm">{ownerMember.user_profiles?.first_name} {ownerMember.user_profiles?.last_name}</span>
             </div>
           )}
         </div>
@@ -173,9 +174,9 @@ export default async function OrganizationDetailPage({ params }: OrganizationDet
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div className="bg-white rounded-lg border shadow-sm p-6">
-            <h3 className="text-lg font-medium text-gray-900 mb-4">Organization Details</h3>
+        <div className="bg-white rounded-lg border shadow-sm p-6">
+          <h3 className="text-lg font-medium text-gray-900 mb-4">Organization Details</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-4">
               <div>
                 <label className="text-sm font-medium text-gray-500">Name</label>
@@ -185,6 +186,16 @@ export default async function OrganizationDetailPage({ params }: OrganizationDet
                 <label className="text-sm font-medium text-gray-500">Slug</label>
                 <p className="mt-1 text-sm text-gray-900">{organization.slug}</p>
               </div>
+              <div>
+                <label className="text-sm font-medium text-gray-500">Type</label>
+                <p className="mt-1 text-sm text-gray-900 capitalize">{organization.type}</p>
+              </div>
+              <div>
+                <label className="text-sm font-medium text-gray-500">Plan</label>
+                <p className="mt-1 text-sm text-gray-900 capitalize">{organization.plan_type}</p>
+              </div>
+            </div>
+            <div className="space-y-4">
               {organization.description && (
                 <div>
                   <label className="text-sm font-medium text-gray-500">Description</label>
@@ -218,36 +229,14 @@ export default async function OrganizationDetailPage({ params }: OrganizationDet
               </div>
             </div>
           </div>
-
-          <div className="bg-white rounded-lg border shadow-sm p-6">
-            <h3 className="text-lg font-medium text-gray-900 mb-4">Members</h3>
-            <div className="space-y-3">
-              {members?.map((member) => (
-                <div key={member.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                  <div className="flex items-center space-x-3">
-                    <div className="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center">
-                      <Users className="w-4 h-4 text-gray-600" />
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium text-gray-900">
-                        {(member.user_profiles as any)?.first_name} {(member.user_profiles as any)?.last_name}
-                      </p>
-                      <p className="text-xs text-gray-500">{(member.user_profiles as any)?.email}</p>
-                    </div>
-                  </div>
-                  <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-                    member.role === 'admin' ? 'bg-red-100 text-red-800' : 'bg-blue-100 text-blue-800'
-                  }`}>
-                    {member.role}
-                  </span>
-                </div>
-              ))}
-              {(!members || members.length === 0) && (
-                <p className="text-sm text-gray-500 text-center py-4">No members found</p>
-              )}
-            </div>
-          </div>
         </div>
+
+        {/* Team Management Section */}
+        <OrganizationMemberManager
+          organizationId={id}
+          organizationName={organization.name}
+          maxMembers={organization.plan_type === 'free' ? 5 : organization.plan_type === 'premium' ? 10 : 50}
+        />
 
         <div className="bg-white rounded-lg border shadow-sm p-6 mt-6">
           <h3 className="text-lg font-medium text-gray-900 mb-4">Additional Details</h3>

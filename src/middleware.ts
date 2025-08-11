@@ -89,8 +89,13 @@ export async function middleware(request: NextRequest) {
       }
     }
 
-    // Auth routes (redirect to dashboard if already logged in)
+    // Auth routes (redirect to dashboard if already logged in, except for reset-password)
     if (request.nextUrl.pathname.startsWith('/auth')) {
+      // Allow reset-password even if user is authenticated (password reset flow)
+      if (request.nextUrl.pathname === '/auth/reset-password') {
+        return response
+      }
+      
       if (user) {
         return NextResponse.redirect(new URL('/dashboard', request.url))
       }

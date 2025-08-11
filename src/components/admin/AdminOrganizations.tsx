@@ -24,6 +24,7 @@ import {
   Square
 } from 'lucide-react'
 import Link from 'next/link'
+import OrganizationCreationModal from './OrganizationCreationModal'
 
 interface AdminUser {
   id: string
@@ -66,6 +67,7 @@ export default function AdminOrganizations({ organizations, adminUser }: AdminOr
   const [newTag, setNewTag] = useState({ category: '', value: '' })
   const [selectedOrgs, setSelectedOrgs] = useState<string[]>([])
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const [showCreateModal, setShowCreateModal] = useState(false)
 
   // Get available tag categories and values
   const tagCategories = ['account_status', 'testing', 'program', 'support']
@@ -280,6 +282,13 @@ export default function AdminOrganizations({ organizations, adminUser }: AdminOr
           </div>
 
           <div className="flex items-center space-x-4">
+            <button
+              onClick={() => setShowCreateModal(true)}
+              className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 flex items-center space-x-2"
+            >
+              <Plus className="w-4 h-4" />
+              <span>Create Organization</span>
+            </button>
             {selectedOrgs.length > 0 && (
               <div className="flex items-center space-x-2">
                 <span className="text-sm text-gray-600">
@@ -576,6 +585,16 @@ export default function AdminOrganizations({ organizations, adminUser }: AdminOr
           </div>
         )}
       </div>
+
+      {/* Organization Creation Modal */}
+      <OrganizationCreationModal
+        isOpen={showCreateModal}
+        onClose={() => setShowCreateModal(false)}
+        onSuccess={() => {
+          // Refresh the page to show new organization
+          window.location.reload()
+        }}
+      />
 
       {/* Delete Confirmation Modal */}
       {showDeleteConfirm && (
