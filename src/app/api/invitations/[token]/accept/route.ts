@@ -74,7 +74,7 @@ export async function POST(
       .select('*', { count: 'exact', head: true })
       .eq('organization_id', invitation.organization_id)
 
-    if ((currentMembers || 0) >= invitation.organizations.max_members) {
+    if ((currentMembers || 0) >= (invitation.organizations as any).max_members) {
       return NextResponse.json({ 
         error: 'Organization has reached maximum member limit' 
       }, { status: 400 })
@@ -181,7 +181,7 @@ export async function POST(
         error: 'You are already a member of this organization',
         organization: {
           id: invitation.organization_id,
-          name: invitation.organizations.name
+          name: (invitation.organizations as any).name
         }
       }, { status: 400 })
     }
@@ -241,7 +241,7 @@ export async function POST(
       message: 'Successfully joined organization',
       organization: {
         id: invitation.organization_id,
-        name: invitation.organizations.name
+        name: (invitation.organizations as any).name
       },
       member: {
         id: acceptingUser.id,
@@ -330,10 +330,10 @@ export async function GET(
         personal_message: invitation.personal_message,
         organization: invitation.organizations,
         invited_by: invitation.user_profiles ? {
-          name: invitation.user_profiles.first_name && invitation.user_profiles.last_name
-            ? `${invitation.user_profiles.first_name} ${invitation.user_profiles.last_name}`
-            : invitation.user_profiles.email,
-          email: invitation.user_profiles.email
+          name: (invitation.user_profiles as any).first_name && (invitation.user_profiles as any).last_name
+            ? `${(invitation.user_profiles as any).first_name} ${(invitation.user_profiles as any).last_name}`
+            : (invitation.user_profiles as any).email,
+          email: (invitation.user_profiles as any).email
         } : null
       },
       is_valid: invitation.status === 'pending' && !isExpired

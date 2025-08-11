@@ -91,15 +91,15 @@ export async function GET(
       permissions: member.permissions,
       joined_at: member.joined_at,
       profile: member.user_profiles ? {
-        id: member.user_profiles.id,
-        email: member.user_profiles.email,
-        first_name: member.user_profiles.first_name,
-        last_name: member.user_profiles.last_name,
-        full_name: member.user_profiles.first_name && member.user_profiles.last_name 
-          ? `${member.user_profiles.first_name} ${member.user_profiles.last_name}`.trim()
-          : member.user_profiles.email,
-        avatar_url: member.user_profiles.avatar_url,
-        member_since: member.user_profiles.created_at
+        id: (member.user_profiles as any).id,
+        email: (member.user_profiles as any).email,
+        first_name: (member.user_profiles as any).first_name,
+        last_name: (member.user_profiles as any).last_name,
+        full_name: (member.user_profiles as any).first_name && (member.user_profiles as any).last_name 
+          ? `${(member.user_profiles as any).first_name} ${(member.user_profiles as any).last_name}`.trim()
+          : (member.user_profiles as any).email,
+        avatar_url: (member.user_profiles as any).avatar_url,
+        member_since: (member.user_profiles as any).created_at
       } : null
     }))
 
